@@ -11,7 +11,7 @@ from wtforms.validators import DataRequired, Email
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
-from flask_mail import Message
+from flask_mail import Message, Mail
 from models import db, User, Message
 from time import time
 
@@ -29,6 +29,18 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///uknowme.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["UPLOAD_FOLDER"] = os.path.join(BASE_DIR, "static/uploads")
 app.config["MAX_CONTENT_LENGTH"] = 250 * 1024 * 1024  # 250MB
+
+
+from flask_mail import Mail
+
+app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER")
+app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT", 587))
+app.config["MAIL_USE_TLS"] = True
+app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
+app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
+app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER")
+
+mail = Mail(app)
 
 
 db.init_app(app)
@@ -206,16 +218,6 @@ def logout():
     logout_user()
     return redirect("/login")
 
-# --------------------
-# INIT DB
-# --------------------
-with app.app_context():
-    db.create_all()
-
-if __name__ == "__main__":
-    app.run(debug=True)
-
-
 @app.route("/test-email")
 @login_required
 def test_email():
@@ -226,3 +228,16 @@ def test_email():
     )
     mail.send(msg)
     return "Email sent. Check your inbox (and spam)."
+
+
+# --------------------
+# INIT DB
+# --------------------
+with app.app_context():
+    db.create_all()
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
+
