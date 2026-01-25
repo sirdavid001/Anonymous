@@ -2,12 +2,12 @@ Flask
 Flask-SQLAlchemy
 Flask-Login
 Flask-WTF
+Flask-Mail
 email-validator
 python-dotenv
 itsdangerous
-werkzeug
+Werkzeug
 authlib
 flask-limiter
 Pillow
-python-magic
 gunicorn
