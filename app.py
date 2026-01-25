@@ -11,7 +11,8 @@ from wtforms.validators import DataRequired, Email
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
-from flask_mail import Message, Mail
+from flask_mail import Mail, Message as MailMessage
+
 from models import db, User, Message
 from time import time
 
@@ -221,14 +222,16 @@ def logout():
 @app.route("/test-email")
 @login_required
 def test_email():
-    msg = Message(
+    msg = MailMessage(
         subject="Brevo test – Uknowme ✅",
         recipients=[current_user.email],
-        html="<h3>Email is working perfectly 🎉</h3><p>This email was sent via Brevo.</p>"
+        html="""
+        <h3>Email is working perfectly 🎉</h3>
+        <p>This email was sent via Brevo.</p>
+        """
     )
     mail.send(msg)
     return "Email sent. Check your inbox (and spam)."
-
 
 # --------------------
 # INIT DB
