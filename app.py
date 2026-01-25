@@ -15,6 +15,7 @@ from flask_mail import Mail, Message as MailMessage
 
 from models import db, User, Message
 from time import time
+import requests
 
 DROP_LIMIT = {}
 
@@ -220,19 +221,38 @@ def logout():
     logout_user()
     return redirect("/login")
 
+
+def send_email_http(to, subject, html):
+    api_key = os.getenv("MAIL_PASSWORD")  # Brevo API key
+    sender = os.getenv("MAIL_DEFAULT_SENDER")
+
+    url = "https://api.brevo.com/v3/smtp/email"
+
+    headers = {
+        "accept": "application/json",
+        "api-key": api_key,
+        "content-type": "application/json"
+    }
+
+    payload = {
+        "sender": {"email": sender, "name": "Uknowme"},
+        "to": [{"email": to}],
+        "subject": subject,
+        "htmlContent": html
+    }
+
+    r = requests.post(url, json=payload, headers=headers)
+    r.raise_for_status()
+
 @app.route("/test-email")
 @login_required
 def test_email():
-    msg = MailMessage(
-        subject="Brevo test – Uknowme ✅",
-        recipients=[current_user.email],
-        html="""
-        <h3>Email is working perfectly 🎉</h3>
-        <p>This email was sent via Brevo.</p>
-        """
+    send_email_http(
+        current_user.email,
+        "Brevo test – Uknowme ✅",
+        "<h3>Email is working perfectly 🎉</h3><p>Sent via Brevo HTTP API.</p>"
     )
-    mail.send(msg)
-    return "Email sent. Check your inbox (and spam)."
+    return "Email sent. Check your inbox."
 
 # --------------------
 # INIT DB

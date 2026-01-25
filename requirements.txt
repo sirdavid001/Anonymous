@@ -11,3 +11,4 @@ authlib
 flask-limiter
 Pillow
 gunicorn
+requests
