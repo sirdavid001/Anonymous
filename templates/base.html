@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Uknowme</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+<nav>
+  <strong>Uknowme</strong>
+  <div>
+    {% if current_user.is_authenticated %}
+      <a href="/dashboard">Inbox</a>
+      <a href="/logout">Logout</a>
+    {% else %}
+      <a href="/login">Login</a>
+      <a href="/">Create link</a>
+    {% endif %}
+  </div>
+</nav>
+
+<div class="container">
+  {% with messages = get_flashed_messages() %}
+    {% for msg in messages %}
+      <div class="flash">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</div>
+
+<script>
+function copyLink() {
+  const text = document.getElementById("inboxLink").innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    alert("Link copied ✨");
+  });
+}
+</script>
+
+</body>
+</html>

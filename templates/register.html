@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+  <h2>Create your anonymous inbox</h2>
+  <p class="muted">
+    Let people say what they really think — anonymously.
+  </p>
+
+  <form method="POST">
+    {{ form.hidden_tag() }}
+
+    <div class="form-group">
+      <input type="email" name="email" placeholder="Email address" required>
+      <input type="password" name="password" placeholder="Create a password" required>
+    </div>
+
+    <button>Create my link</button>
+  </form>
+
+  <p class="muted" style="margin-top:18px;text-align:center;">
+    Already have an account?
+    <a href="/login" style="color:var(--accent);text-decoration:none;">Log in</a>
+  </p>
+</div>
+
+{% endblock %}

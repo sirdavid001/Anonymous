@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+  <h2>Welcome back</h2>
+  <p class="muted">
+    Log in to view what people sent you.
+  </p>
+
+  <form method="POST">
+    {{ form.hidden_tag() }}
+
+    <div class="form-group">
+      <input type="email" name="email" placeholder="Email address" required>
+      <input type="password" name="password" placeholder="Password" required>
+    </div>
+
+    <button>Log in</button>
+  </form>
+
+  <p class="muted" style="margin-top:18px;text-align:center;">
+    New here?
+    <a href="/" style="color:var(--accent);text-decoration:none;">Create a link</a>
+  </p>
+</div>
+
+{% endblock %}

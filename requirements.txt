@@ -1,0 +1,13 @@
+Flask
+Flask-SQLAlchemy
+Flask-Login
+Flask-WTF
+email-validator
+python-dotenv
+itsdangerous
+werkzeug
+authlib
+flask-limiter
+Pillow
+python-magic
+gunicorn
