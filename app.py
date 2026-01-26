@@ -140,13 +140,13 @@ def login():
         if user and check_password_hash(user.password_hash, form.password.data):
             login_user(user)
 
-    if not user.is_verified:
-        flash("Please verify your email before continuing.")
-        return redirect(url_for("unverified"))
+            if not user.is_verified:
+                flash("Please verify your email before continuing.")
+                return redirect(url_for("unverified"))
 
-    return redirect(url_for("dashboard"))
-    
-    flash("Invalid email or password.")
+            return redirect(url_for("dashboard"))
+
+        flash("Invalid email or password.")
 
     return render_template("login.html", form=form)
 
