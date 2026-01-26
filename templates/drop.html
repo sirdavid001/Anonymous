@@ -11,10 +11,13 @@
   <p class="muted">This message is completely anonymous.</p>
 
 <form method="POST" enctype="multipart/form-data">
-  {{ form.hidden_tag() }}
-  {{ form.message(rows=4, placeholder="Write something honest...") }}
-  <input type="file" name="file" style="margin-top:12px;">
-  <button type="submit">Send anonymously</button>
+    {{ form.hidden_tag() }}
+
+    {{ form.message(class="input") }}
+
+    <input type="file" name="file">
+
+    <button type="submit">Send</button>
 </form>
 
 </div>

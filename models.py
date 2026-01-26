@@ -20,3 +20,13 @@ class Message(db.Model):
     media_type = db.Column(db.String(20))
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+email_notifications = db.Column(db.Boolean, default=True)
+
+is_verified = db.Column(db.Boolean, default=False)
+
+class RateLimit(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ip = db.Column(db.String(45), unique=True, nullable=False)
+    last_hit = db.Column(db.Float, nullable=False)
