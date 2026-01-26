@@ -5,11 +5,17 @@ from flask_login import UserMixin
 db = SQLAlchemy()
 
 
-class User(UserMixin, db.Model):
+class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)
-    slug = db.Column(db.String(32), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    slug = db.Column(db.String(50), unique=True, nullable=False)
+
+    email_notifications = db.Column(db.Boolean, default=True)
+    is_verified = db.Column(db.Boolean, default=False)
+    is_admin = db.Column(db.Boolean, default=False)
+
+    messages = db.relationship("Message", backref="user", lazy=True)
 
 
 class Message(db.Model):
