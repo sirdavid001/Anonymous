@@ -20,7 +20,26 @@
     <button type="submit">Send</button>
 </form>
 
+</div>{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+  <h2>Send anonymous message</h2>
+
+  <form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+
+    <div class="form-group">
+      {{ form.message(placeholder="Write something honest…") }}
+      <input type="file" name="file">
+    </div>
+
+    <button>Send anonymously</button>
+  </form>
 </div>
+
+{% endblock %}
+
 
 </body>
 </html>

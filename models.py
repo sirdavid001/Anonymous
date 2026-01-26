@@ -30,3 +30,5 @@ class RateLimit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ip = db.Column(db.String(45), unique=True, nullable=False)
     last_hit = db.Column(db.Float, nullable=False)
+
+is_admin = db.Column(db.Boolean, default=False)

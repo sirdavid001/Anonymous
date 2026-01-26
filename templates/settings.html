@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+  <h2>Settings</h2>
+
+  <form method="POST">
+    <label>
+      <input type="checkbox" name="email_notifications"
+        {% if current_user.email_notifications %}checked{% endif %}>
+      Email notifications
+    </label>
+
+    <div class="form-group">
+      <input type="password" name="new_password" placeholder="New password (optional)">
+    </div>
+
+    <button>Save changes</button>
+  </form>
+</div>
+
+{% endblock %}

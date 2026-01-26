@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin · Uknowme</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="card">
+  <h2>Admin Dashboard</h2>
+
+  <h3>Recent Messages</h3>
+  {% for msg in messages %}
+    <div class="msg">
+      <p>{{ msg.text or "📎 Media message" }}</p>
+      <small>User ID: {{ msg.user_id }}</small>
+    </div>
+  {% endfor %}
+
+  <h3>Users</h3>
+  {% for u in users %}
+    <div class="row">
+      <span>{{ u.email }}</span>
+      {% if u.is_admin %}<strong>(admin)</strong>{% endif %}
+    </div>
+  {% endfor %}
+</div>
+
+</body>
+</html>

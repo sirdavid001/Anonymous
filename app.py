@@ -1,6 +1,6 @@
 import os
 import secrets
-from flask import Flask, render_template, redirect, request, flash, url_for
+from flask import Flask, abort, render_template, redirect, request, flash, url_for
 from flask_login import (
     LoginManager, login_user,
     login_required, logout_user, current_user
@@ -139,16 +139,37 @@ def login():
 
         if user and check_password_hash(user.password_hash, form.password.data):
             login_user(user)
-            return redirect("/dashboard")
 
-        flash("Invalid email or password.")
+    if not user.is_verified:
+        flash("Please verify your email before continuing.")
+        return redirect(url_for("unverified"))
+
+    return redirect(url_for("dashboard"))
+    
+    flash("Invalid email or password.")
 
     return render_template("login.html", form=form)
+
+
+
+@app.route("/unverified")
+@login_required
+def unverified():
+    if current_user.is_verified:
+        return redirect(url_for("dashboard"))
+    return render_template("unverified.html")
+
+
+
 
 
 @app.route("/dashboard")
 @login_required
 def dashboard():
+    
+    if not current_user.is_verified:
+        return redirect(url_for("unverified"))
+    
     messages = Message.query.filter_by(user_id=current_user.id).order_by(
         Message.created_at.desc()
     ).all()
@@ -171,6 +192,10 @@ def dashboard():
 
 @app.route("/drop/<slug>", methods=["GET", "POST"])
 def drop(slug):
+    
+    if not user.is_verified:
+        abort(403)
+
     user = User.query.filter_by(slug=slug).first_or_404()
     form = DropForm()
 
@@ -311,16 +336,39 @@ def forgot_password():
 def verify_email(token):
     email = verify_email_token(token)
     if not email:
-        return "Invalid or expired verification link."
+        return render_template("verify_failed.html")
 
     user = User.query.filter_by(email=email).first()
     if user:
         user.is_verified = True
         db.session.commit()
 
-    flash("Email verified successfully.")
-    return redirect(url_for("login"))
+    return render_template("verify_success.html")
 
+
+
+
+
+@app.route("/resend-verification", methods=["POST"])
+@login_required
+def resend_verification():
+    if current_user.is_verified:
+        return redirect(url_for("dashboard"))
+
+    token = generate_verify_token(current_user.email)
+    verify_link = url_for("verify_email", token=token, _external=True)
+
+    send_email_http(
+        current_user.email,
+        "Verify your Uknowme email",
+        f"""
+        <p>Please verify your email by clicking the link below:</p>
+        <p><a href="{verify_link}">Verify my email</a></p>
+        """
+    )
+
+    flash("Verification email resent.")
+    return redirect(url_for("unverified"))
 
 
 
@@ -372,6 +420,46 @@ def test_email():
         "<h3>Email is working perfectly 🎉</h3><p>Sent via Brevo HTTP API.</p>"
     )
     return "Email sent. Check your inbox."
+
+
+
+@app.route("/settings", methods=["GET", "POST"])
+@login_required
+def settings():
+    if request.method == "POST":
+        # Toggle email notifications
+        current_user.email_notifications = bool(
+            request.form.get("email_notifications")
+        )
+
+        # Change password (optional)
+        new_password = request.form.get("new_password")
+        if new_password:
+            current_user.password_hash = generate_password_hash(new_password)
+
+        db.session.commit()
+        flash("Settings updated successfully.")
+
+    return render_template("settings.html")
+
+
+@app.route("/admin")
+@login_required
+def admin():
+    if not current_user.is_admin:
+        abort(403)
+
+    messages = Message.query.order_by(Message.created_at.desc()).limit(100).all()
+    users = User.query.all()
+
+    return render_template(
+        "admin.html",
+        messages=messages,
+        users=users
+    )
+
+
+
 
 # --------------------
 # INIT DB

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Email Verification Required · Uknowme</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="auth-card">
+  <h2>Verify your email</h2>
+  <p class="muted">
+    You must verify your email before accessing your dashboard.
+  </p>
+
+  <form method="POST" action="{{ url_for('resend_verification') }}">
+    <button class="btn-primary">Resend verification email</button>
+  </form>
+
+  <div class="auth-footer">
+    <a href="{{ url_for('logout') }}">Logout</a>
+  </div>
+</div>
+
+</body>
+</html>
