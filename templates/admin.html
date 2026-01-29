@@ -1,16 +1,45 @@
 {% extends "base.html" %}
+{% block title %}Admin{% endblock %}
+
 {% block content %}
-<div class="card">
-  <h2>Admin panel</h2>
+<h3 class="fw-bold mb-4">Admin dashboard</h3>
 
-  <h3>Users</h3>
-  {% for u in users %}
-    <p>{{ u.email }}</p>
-  {% endfor %}
+<div class="row mb-4">
+  <div class="col-md-4">
+    <div class="card p-3 shadow-sm">
+      <h6>Total users</h6>
+      <h3>{{ users|length }}</h3>
+    </div>
+  </div>
 
-  <h3>Messages</h3>
-  {% for m in messages %}
-    <p>{{ m.text }}</p>
-  {% endfor %}
+  <div class="col-md-4">
+    <div class="card p-3 shadow-sm">
+      <h6>Total messages</h6>
+      <h3>{{ messages|length }}</h3>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm p-3">
+  <h5 class="mb-3">Recent messages</h5>
+
+  <table class="table table-sm">
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Text</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for msg in messages %}
+        <tr>
+          <td>{{ msg.user_id }}</td>
+          <td>{{ msg.text[:60] }}</td>
+          <td>{{ msg.created_at.strftime('%Y-%m-%d') }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endblock %}
