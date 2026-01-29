@@ -29,6 +29,12 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["UPLOAD_FOLDER"] = os.path.join(BASE_DIR, "static/uploads")
 app.config["MAX_CONTENT_LENGTH"] = 250 * 1024 * 1024  # 250MB
 
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=True,  
+)
+
 
 
 db.init_app(app)
@@ -70,12 +76,14 @@ def load_user(user_id):
 # --------------------
 class RegisterForm(FlaskForm):
     email = StringField(validators=[Email(), DataRequired()])
-    password = PasswordField(validators=[DataRequired()])
-
-
-class LoginForm(FlaskForm):
-    email = StringField(validators=[Email(), DataRequired()])
-    password = PasswordField(validators=[DataRequired()])
+    password = PasswordField(validators=[
+        DataRequired(),
+        Length(min=8),
+        Regexp(
+            r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)",
+            message="Password must include uppercase, lowercase, and a number."
+        )
+    ])
 
 
 class DropForm(FlaskForm):
@@ -130,6 +138,21 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm()
+
+    ip = request.remote_addr
+    now = time()
+    record = RateLimit.query.filter_by(ip=ip).first()
+
+
+    if record and now - record.last_hit < 10:
+        flash("Too many attempts. Try again shortly.")
+        return redirect(url_for("login")) 
+    
+    if record:
+        record.last_hit = now
+    else:
+        db.session.add(RateLimit(ip=ip, last_hit=now))
+    db.session.commit()
 
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
@@ -220,9 +243,17 @@ def drop(slug):
                 return redirect(request.url)
 
             os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-            filename = secure_filename(file.filename)
+            ext = file.filename.rsplit(".", 1)[-1]
+            filename = f"{secrets.token_hex(16)}.{ext}"
             filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
             file.save(filepath)
+            file.seek(0, os.SEEK_END)
+            size = file.tell()
+            file.seek(0)
+
+            if size > 250 * 1024 * 1024:
+                flash("File too large.")
+                return redirect(request.url)
 
             media_path = f"uploads/{filename}"
 
@@ -271,6 +302,9 @@ def send_email_http(to, subject, html):
         api_key = os.getenv("MAIL_PASSWORD")
         sender = os.getenv("MAIL_DEFAULT_SENDER")
 
+        if not api_key or not sender:
+            raise ValueError("Email env vars missing")
+
         headers = {
             "accept": "application/json",
             "api-key": api_key,
@@ -284,14 +318,19 @@ def send_email_http(to, subject, html):
             "htmlContent": html,
         }
 
-        requests.post(
+        r = requests.post(
             "https://api.brevo.com/v3/smtp/email",
             json=payload,
             headers=headers,
             timeout=10,
         )
+
+        if r.status_code >= 400:
+            print("Brevo error:", r.text)
+
     except Exception as e:
-        print("Email error:", e)
+        print("Email system failure:", e)
+
 
 
 
@@ -457,6 +496,16 @@ def admin():
     )
 
 
+@app.after_request
+def add_security_headers(response):
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
+
+
+
 
 
 # --------------------
@@ -464,6 +513,6 @@ def admin():
 # --------------------
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
 
 
