@@ -16,9 +16,6 @@ from models import db, User, Message, RateLimit
 from time import time
 import requests
 
-DROP_LIMIT = {}
-
-
 # --------------------
 # BASIC SETUP
 # --------------------
@@ -192,19 +189,14 @@ def dashboard():
 
 @app.route("/drop/<slug>", methods=["GET", "POST"])
 def drop(slug):
-    
+    user = User.query.filter_by(slug=slug).first_or_404()
+
     if not user.is_verified:
         abort(403)
 
-    user = User.query.filter_by(slug=slug).first_or_404()
     form = DropForm()
 
     if form.validate_on_submit():
-        file = request.files.get("file")
-        media_path = None
-        media_type = None
-        
-        
         ip = request.remote_addr
         now = time()
         record = RateLimit.query.filter_by(ip=ip).first()
@@ -217,28 +209,30 @@ def drop(slug):
             record.last_hit = now
         else:
             db.session.add(RateLimit(ip=ip, last_hit=now))
+
+        file = request.files.get("file")
+        media_path = None
+        media_type = None
+
         if file and file.filename:
-         if not allowed_file(file.filename):
-          flash("Unsupported file type.")
-          return redirect(request.url)
+            if not allowed_file(file.filename):
+                flash("Unsupported file type.")
+                return redirect(request.url)
 
-    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-    file.save(filepath)
+            os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file.save(filepath)
 
-    media_path = f"uploads/{filename}"
+            media_path = f"uploads/{filename}"
 
-    ext = filename.lower().rsplit(".", 1)[-1]
-    if ext in ["png", "jpg", "jpeg", "gif"]:
-        media_type = "image"
-    elif ext in ["mp4", "webm", "mov"]:
-        media_type = "video"
-    elif ext in ["mp3", "wav", "aac"]:
-        media_type = "audio"
-
-            
-
+            ext = filename.rsplit(".", 1)[-1].lower()
+            if ext in ["png", "jpg", "jpeg", "gif"]:
+                media_type = "image"
+            elif ext in ["mp4", "webm", "mov"]:
+                media_type = "video"
+            elif ext in ["mp3", "wav", "aac"]:
+                media_type = "audio"
 
         msg = Message(
             user_id=user.id,
@@ -254,16 +248,14 @@ def drop(slug):
             send_email_http(
                 user.email,
                 "You received a new anonymous message 👀",
-                """
-                <p>You just received a new anonymous message.</p>
-                <p>Log in to your dashboard to read it.</p>
-        """
-    )
+                "<p>You just received a new anonymous message.</p>"
+            )
 
-    flash("Message sent anonymously.")
-    return redirect(request.url)
+        flash("Message sent anonymously.")
+        return redirect(request.url)
 
     return render_template("drop.html", form=form)
+
 
 
 
@@ -275,26 +267,32 @@ def logout():
 
 
 def send_email_http(to, subject, html):
-    api_key = os.getenv("MAIL_PASSWORD")  # Brevo API key
-    sender = os.getenv("MAIL_DEFAULT_SENDER")
+    try:
+        api_key = os.getenv("MAIL_PASSWORD")
+        sender = os.getenv("MAIL_DEFAULT_SENDER")
 
-    url = "https://api.brevo.com/v3/smtp/email"
+        headers = {
+            "accept": "application/json",
+            "api-key": api_key,
+            "content-type": "application/json",
+        }
 
-    headers = {
-        "accept": "application/json",
-        "api-key": api_key,
-        "content-type": "application/json"
-    }
+        payload = {
+            "sender": {"email": sender, "name": "Uknowme"},
+            "to": [{"email": to}],
+            "subject": subject,
+            "htmlContent": html,
+        }
 
-    payload = {
-        "sender": {"email": sender, "name": "Uknowme"},
-        "to": [{"email": to}],
-        "subject": subject,
-        "htmlContent": html
-    }
+        requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            json=payload,
+            headers=headers,
+            timeout=10,
+        )
+    except Exception as e:
+        print("Email error:", e)
 
-    r = requests.post(url, json=payload, headers=headers)
-    r.raise_for_status()
 
 
 def generate_reset_token(email):
