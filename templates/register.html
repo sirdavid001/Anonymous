@@ -7,21 +7,31 @@
       <h4 class="fw-bold mb-1">Create account</h4>
       <p class="text-muted mb-4">Anonymous messages, simplified</p>
 
-      <form method="post">
-        {{ form.hidden_tag() }}
+      <form method="POST" novalidate>
+    {{ form.hidden_tag() }}
 
-        <div class="mb-3">
-          <label class="form-label">Email</label>
-          {{ form.email(class="form-control") }}
+    <div class="form-group">
+        {{ form.email(class="input", placeholder="Email address") }}
+    </div>
+
+    <div class="form-group">
+        {{ form.password(class="input", placeholder="Password") }}
+    </div>
+
+    <button type="submit" class="btn-primary">
+        Create Account
+    </button>
+
+    {% if form.errors %}
+        <div class="error-box">
+            {% for field, errors in form.errors.items() %}
+                {% for error in errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            {% endfor %}
         </div>
-
-        <div class="mb-3">
-          <label class="form-label">Password</label>
-          {{ form.password(class="form-control") }}
-        </div>
-
-        <button class="btn btn-info w-100 fw-semibold">Create account</button>
-      </form>
+    {% endif %}
+</form>
 
       <div class="text-center mt-3">
         <a href="{{ url_for('login') }}" class="text-decoration-none small">
