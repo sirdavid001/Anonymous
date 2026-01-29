@@ -1,12 +1,67 @@
 {% extends "base.html" %}
+{% block title %}Send Anonymous Message{% endblock %}
+
 {% block content %}
-<div class="card">
-  <h2>Send anonymous message</h2>
-  <form method="POST" enctype="multipart/form-data">
-    {{ form.hidden_tag() }}
-    {{ form.message }}
-    <input type="file" name="file">
-    <button>Send anonymously</button>
-  </form>
+<div class="row justify-content-center">
+  <div class="col-lg-6 col-md-8">
+
+    <div class="card shadow-sm p-4">
+      <h4 class="fw-bold mb-2 text-center">
+        Send an anonymous message
+      </h4>
+
+      <p class="text-muted text-center mb-4">
+        Your identity is never revealed.
+      </p>
+
+      <form method="POST" enctype="multipart/form-data" id="dropForm">
+        {{ form.hidden_tag() }}
+
+        <!-- Message -->
+        <div class="mb-3">
+          {{ form.message(
+            class="form-control",
+            rows="4",
+            placeholder="Write something honest, kind, or bold…"
+          ) }}
+        </div>
+
+        <!-- File upload -->
+        <div class="mb-3">
+          <label class="form-label small text-muted">
+            Optional attachment (image / video / audio)
+          </label>
+          <input
+            type="file"
+            name="file"
+            class="form-control"
+            accept="image/*,video/*,audio/*"
+          >
+        </div>
+
+        <!-- Submit -->
+        <button class="btn btn-primary w-100" id="sendBtn">
+          <span class="btn-text">Send anonymously</span>
+          <span class="spinner-border spinner-border-sm d-none"></span>
+        </button>
+      </form>
+
+      <p class="small text-muted text-center mt-4">
+        Powered by <strong>Uknowme</strong>
+      </p>
+    </div>
+
+  </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById("dropForm").addEventListener("submit", function () {
+  const btn = document.getElementById("sendBtn");
+  btn.disabled = true;
+  btn.querySelector(".btn-text").classList.add("d-none");
+  btn.querySelector(".spinner-border").classList.remove("d-none");
+});
+</script>
 {% endblock %}
