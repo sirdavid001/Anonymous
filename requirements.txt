@@ -3,7 +3,9 @@ Flask-SQLAlchemy
 Flask-Login
 Flask-WTF
 Flask-Mail
+Flask-SQLAlchemy
 email-validator
+psycopg2-binary
 python-dotenv
 itsdangerous
 Werkzeug
