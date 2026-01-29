@@ -1,45 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Send Message</title>
-  <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-
-<div class="card">
-  <h1>Say something</h1>
-  <p class="muted">This message is completely anonymous.</p>
-
-<form method="POST" enctype="multipart/form-data">
-    {{ form.hidden_tag() }}
-
-    {{ form.message(class="input") }}
-
-    <input type="file" name="file">
-
-    <button type="submit">Send</button>
-</form>
-
-</div>{% extends "base.html" %}
+{% extends "base.html" %}
 {% block content %}
-
 <div class="card">
   <h2>Send anonymous message</h2>
-
   <form method="POST" enctype="multipart/form-data">
     {{ form.hidden_tag() }}
-
-    <div class="form-group">
-      {{ form.message(placeholder="Write something honest…") }}
-      <input type="file" name="file">
-    </div>
-
+    {{ form.message }}
+    <input type="file" name="file">
     <button>Send anonymously</button>
   </form>
 </div>
-
 {% endblock %}
-
-
-</body>
-</html>

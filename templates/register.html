@@ -1,27 +1,35 @@
 {% extends "base.html" %}
 {% block content %}
+<div class="container d-flex align-items-center justify-content-center" style="min-height:85vh">
+  <div class="card shadow-lg border-0" style="max-width:420px;width:100%">
+    <div class="card-body p-4">
 
-<div class="card">
-  <h2>Create your anonymous inbox</h2>
-  <p class="muted">
-    Let people say what they really think — anonymously.
-  </p>
+      <h4 class="fw-bold mb-1">Create account</h4>
+      <p class="text-muted mb-4">Anonymous messages, simplified</p>
 
-  <form method="POST">
-    {{ form.hidden_tag() }}
+      <form method="post">
+        {{ form.hidden_tag() }}
 
-    <div class="form-group">
-      <input type="email" name="email" placeholder="Email address" required>
-      <input type="password" name="password" placeholder="Create a password" required>
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          {{ form.email(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          {{ form.password(class="form-control") }}
+        </div>
+
+        <button class="btn btn-info w-100 fw-semibold">Create account</button>
+      </form>
+
+      <div class="text-center mt-3">
+        <a href="{{ url_for('login') }}" class="text-decoration-none small">
+          Already registered?
+        </a>
+      </div>
+
     </div>
-
-    <button>Create my link</button>
-  </form>
-
-  <p class="muted" style="margin-top:18px;text-align:center;">
-    Already have an account?
-    <a href="/login" style="color:var(--accent);text-decoration:none;">Log in</a>
-  </p>
+  </div>
 </div>
-
 {% endblock %}

@@ -1,19 +1,16 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Email Verified · Uknowme</title>
-  <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
+{% extends "base.html" %}
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center" style="min-height:85vh">
+  <div class="card shadow border-0 text-center p-4" style="max-width:420px;width:100%">
 
-<div class="auth-card">
-  <h2>Email verified 🎉</h2>
-  <p class="muted">Your account is now fully active.</p>
+    {% if success %}
+      <div class="alert alert-success">Email verified successfully</div>
+    {% else %}
+      <div class="alert alert-danger">Invalid or expired link</div>
+    {% endif %}
 
-  <a class="btn-primary" href="{{ url_for('login') }}">
-    Continue to login
-  </a>
+    <a href="{{ url_for('login') }}" class="btn btn-info w-100 mt-2">Login</a>
+
+  </div>
 </div>
-
-</body>
-</html>
+{% endblock %}

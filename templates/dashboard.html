@@ -1,57 +1,16 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Your Dashboard</title>
-  <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-
+{% extends "base.html" %}
+{% block content %}
 <div class="card">
-  <h1>Your Inbox</h1>
-  <p class="muted">Share this link to receive anonymous messages.</p>
+  <h2>Your inbox</h2>
+  <p>Share this link:</p>
+  <input value="{{ inbox_link }}" readonly>
 
-  <div class="link-box">{{ inbox_link }}</div>
+  <hr>
 
-  <h2 style="margin-top:24px;">Messages</h2>
-
-  {% if messages and messages|length > 0 %}
-    {% for msg in messages %}
-  <div class="msg {% if not msg.is_read %}unread{% endif %}">
-
-    {% if msg.text %}
-      <p>{{ msg.text }}</p>
-    {% endif %}
-
-    {% if msg.media_type == "image" %}
-      <img src="{{ url_for('static', filename=msg.media_path) }}"
-           style="max-width:100%;border-radius:12px;">
-    {% elif msg.media_type == "video" %}
-      <video controls style="width:100%;border-radius:12px;">
-        <source src="{{ url_for('static', filename=msg.media_path) }}">
-      </video>
-    {% elif msg.media_type == "audio" %}
-      <audio controls style="width:100%;">
-        <source src="{{ url_for('static', filename=msg.media_path) }}">
-      </audio>
-    {% endif %}
-
-    <small class="muted">
-      {{ msg.created_at.strftime('%b %d, %H:%M') }}
-    </small>
-
-
-  </div>
-{% endfor %}
-
+  {% for msg in messages %}
+    <p>{{ msg.text }}</p>
   {% else %}
-    <p class="muted">No messages yet.</p>
-  {% endif %}
-
-  <a href="/logout"
-     style="display:block;margin-top:18px;color:var(--accent);text-align:center;">
-    Logout
-  </a>
+    <p>No messages yet</p>
+  {% endfor %}
 </div>
-
-</body>
-</html>
+{% endblock %}
