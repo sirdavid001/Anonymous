@@ -526,6 +526,10 @@ def add_security_headers(response):
     return response
 
 
+@app.route("/privacy")
+def privacy():
+    return render_template("privacy.html")
+
 
 
 
