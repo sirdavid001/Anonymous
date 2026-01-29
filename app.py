@@ -43,6 +43,7 @@ app.config.update(
     SESSION_COOKIE_SECURE=not app.debug
 )
 
+print("DB URI:", app.config["SQLALCHEMY_DATABASE_URI"])
 
 
 db.init_app(app)
