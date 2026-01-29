@@ -40,7 +40,7 @@ app.config["MAX_CONTENT_LENGTH"] = 250 * 1024 * 1024  # 250MB
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
-    SESSION_COOKIE_SECURE=True,  
+    SESSION_COOKIE_SECURE=not app.debug
 )
 
 
@@ -97,6 +97,12 @@ class RegisterForm(FlaskForm):
 class DropForm(FlaskForm):
     message = TextAreaField(validators=[DataRequired()])
 
+
+class LoginForm(FlaskForm):
+    email = StringField("Email", validators=[Email(), DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired()])
+
+
 # --------------------
 # ROUTES
 # --------------------
@@ -147,22 +153,21 @@ def register():
 def login():
     form = LoginForm()
 
-    ip = request.remote_addr
-    now = time()
-    record = RateLimit.query.filter_by(ip=ip).first()
-
-
-    if record and now - record.last_hit < 10:
-        flash("Too many attempts. Try again shortly.")
-        return redirect(url_for("login")) 
-    
-    if record:
-        record.last_hit = now
-    else:
-        db.session.add(RateLimit(ip=ip, last_hit=now))
-    db.session.commit()
-
     if form.validate_on_submit():
+        ip = request.remote_addr
+        now = time()
+        record = RateLimit.query.filter_by(ip=ip).first()
+
+        if record and now - record.last_hit < 10:
+            flash("Too many attempts. Try again shortly.")
+            return redirect(url_for("login"))
+
+        if record:
+            record.last_hit = now
+        else:
+            db.session.add(RateLimit(ip=ip, last_hit=now))
+        db.session.commit()
+
         user = User.query.filter_by(email=form.email.data).first()
 
         if user and check_password_hash(user.password_hash, form.password.data):
@@ -177,6 +182,7 @@ def login():
         flash("Invalid email or password.")
 
     return render_template("login.html", form=form)
+
 
 
 
@@ -227,6 +233,8 @@ def drop(slug):
 
     form = DropForm()
 
+    # Reject invalid POSTs (CSRF / tampering)
+
     if form.validate_on_submit():
         ip = request.remote_addr
         now = time()
@@ -250,11 +258,7 @@ def drop(slug):
                 flash("Unsupported file type.")
                 return redirect(request.url)
 
-            os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-            ext = file.filename.rsplit(".", 1)[-1]
-            filename = f"{secrets.token_hex(16)}.{ext}"
-            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-            file.save(filepath)
+            # size check BEFORE saving
             file.seek(0, os.SEEK_END)
             size = file.tell()
             file.seek(0)
@@ -263,9 +267,14 @@ def drop(slug):
                 flash("File too large.")
                 return redirect(request.url)
 
+            os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+            ext = file.filename.rsplit(".", 1)[-1].lower()
+            filename = f"{secrets.token_hex(16)}.{ext}"
+            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file.save(filepath)
+
             media_path = f"uploads/{filename}"
 
-            ext = filename.rsplit(".", 1)[-1].lower()
             if ext in ["png", "jpg", "jpeg", "gif"]:
                 media_type = "image"
             elif ext in ["mp4", "webm", "mov"]:
@@ -294,7 +303,6 @@ def drop(slug):
         return redirect(request.url)
 
     return render_template("drop.html", form=form)
-
 
 
 
@@ -431,7 +439,10 @@ def reset_password(token):
         new_password = request.form.get("password")
         user.password_hash = generate_password_hash(new_password)
         db.session.commit()
+        logout_user()
+
         return redirect(url_for("login"))
+
 
     return render_template("reset_password.html")
 
