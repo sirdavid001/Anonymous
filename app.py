@@ -531,6 +531,14 @@ def privacy():
     return render_template("privacy.html")
 
 
+@app.route("/report/<int:msg_id>", methods=["POST"])
+@login_required
+def report_message(msg_id):
+    msg = Message.query.get_or_404(msg_id)
+    msg.reported = True
+    db.session.commit()
+    flash("Message reported.")
+    return redirect(request.referrer)
 
 
 # --------------------

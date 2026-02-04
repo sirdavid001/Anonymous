@@ -1,32 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Admin{% endblock %}
-
 {% block content %}
-<div class="card shadow-sm p-4">
-  <h4 class="mb-4">Admin Panel</h4>
-
-  <h6>Users</h6>
-  <table class="table table-sm">
-    <tr><th>ID</th><th>Email</th><th>Verified</th><th>Admin</th></tr>
-    {% for u in users %}
-    <tr>
-      <td>{{ u.id }}</td>
-      <td>{{ u.email }}</td>
-      <td>{{ u.is_verified }}</td>
-      <td>{{ u.is_admin }}</td>
-    </tr>
-    {% endfor %}
-  </table>
-
-  <hr>
-
-  <h6>Latest Messages</h6>
-  <ul class="list-group">
-    {% for m in messages %}
-      <li class="list-group-item">
-        {{ m.text[:80] }}...
-      </li>
-    {% endfor %}
-  </ul>
+<div class="alert alert-success shadow-sm text-center">
+  <h4>Email Verified</h4>
+  <a href="/login" class="btn btn-success">Login</a>
 </div>
+{% if msg.reported %}
+<span class="badge bg-danger">Reported</span>
+{% endif %}
+
 {% endblock %}

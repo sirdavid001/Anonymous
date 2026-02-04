@@ -1,69 +1,58 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <title>{% block title %}Uknowme{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9988420021358515"
-     crossorigin="anonymous"></script>
 
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <style>
-    body { font-family: Inter, sans-serif; background:#f8f9fb; }
-    .card { border-radius: 14px; }
-    .btn-primary { background:#4f46e5; border:none; }
-    .btn-primary:disabled { opacity:.6; }
-    .spinner-border-sm { width:1rem; height:1rem; }
-  </style>
- 
-  {% block head %}{% endblock %}
+  <!-- Custom -->
+  <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
+<body class="bg-light">
 
-<nav class="navbar navbar-light bg-white shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
     <a class="navbar-brand fw-bold" href="/">Uknowme</a>
-
-    {% if current_user.is_authenticated %}
-      <div class="d-flex gap-3">
-        <a href="/dashboard" class="text-decoration-none">Dashboard</a>
-        {% if current_user.is_admin %}
-          <a href="/admin" class="text-decoration-none">Admin</a>
-        {% endif %}
-        <a href="/logout" class="text-decoration-none text-danger">Logout</a>
-      </div>
-    {% endif %}
+    <div class="ms-auto">
+      {% if current_user.is_authenticated %}
+        <a class="btn btn-outline-light btn-sm" href="/dashboard">Dashboard</a>
+      {% else %}
+        <a class="btn btn-outline-light btn-sm" href="/login">Login</a>
+      {% endif %}
+    </div>
   </div>
 </nav>
 
 <div class="container my-5">
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      {% for msg in messages %}
-        <div class="alert alert-info">{{ msg }}</div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
-
   {% block content %}{% endblock %}
 </div>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9988420021358515"
-     crossorigin="anonymous"></script>
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-format="autorelaxed"
-     data-ad-client="ca-pub-9988420021358515"
-     data-ad-slot="1208889163"></ins>
-<script>
-     (adsbygoogle = window.adsbygoogle || []).push({});
-</script>
+
+<footer class="text-center text-muted py-4">
+  <a href="/about">About</a> ·
+  <a href="/privacy">Privacy</a> ·
+  <a href="/terms">Terms</a>
+</footer>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-{% block scripts %}{% endblock %}
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll("form").forEach(form => {
+    form.addEventListener("submit", () => {
+      const btn = form.querySelector("button[type=submit]");
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `
+          <span class="spinner-border spinner-border-sm"></span>
+          Processing...
+        `;
+      }
+    });
+  });
+});
+</script>
 </body>
 </html>
