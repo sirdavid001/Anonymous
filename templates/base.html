@@ -18,6 +18,9 @@
     <a class="navbar-brand fw-bold" href="/">Uknowme</a>
     <div class="ms-auto">
       {% if current_user.is_authenticated %}
+        {% if current_user.is_admin %}
+          <a class="btn btn-outline-light btn-sm me-2" href="/admin">Admin</a>
+        {% endif %}
         <a class="btn btn-outline-light btn-sm" href="/dashboard">Dashboard</a>
       {% else %}
         <a class="btn btn-outline-light btn-sm" href="/login">Login</a>
