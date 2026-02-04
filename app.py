@@ -108,7 +108,12 @@ class LoginForm(FlaskForm):
 # --------------------
 # ROUTES
 # --------------------
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
+def landing():
+    return render_template("landing.html")
+
+
+@app.route("/register", methods=["GET", "POST"])
 def register():
     form = RegisterForm()
 
@@ -531,6 +536,11 @@ def privacy():
     return render_template("privacy.html")
 
 
+@app.route("/terms")
+def terms():
+    return render_template("terms.html")
+
+
 
 
 # --------------------
@@ -539,5 +549,3 @@ def privacy():
 
 if __name__ == "__main__":
     app.run()
-
-

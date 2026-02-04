@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <title>{% block title %}Uknowme{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Uknowme lets friends and followers send you anonymous messages securely and respectfully.">
 
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9988420021358515"
      crossorigin="anonymous"></script>
@@ -20,6 +21,8 @@
     .btn-primary { background:#4f46e5; border:none; }
     .btn-primary:disabled { opacity:.6; }
     .spinner-border-sm { width:1rem; height:1rem; }
+    .hero { padding: 4rem 0; }
+    .footer { border-top: 1px solid #e6e8ef; }
   </style>
  
   {% block head %}{% endblock %}
@@ -38,6 +41,11 @@
         {% endif %}
         <a href="/logout" class="text-decoration-none text-danger">Logout</a>
       </div>
+    {% else %}
+      <div class="d-flex gap-3">
+        <a href="/login" class="text-decoration-none">Login</a>
+        <a href="/register" class="btn btn-primary btn-sm">Get started</a>
+      </div>
     {% endif %}
   </div>
 </nav>
@@ -53,6 +61,17 @@
 
   {% block content %}{% endblock %}
 </div>
+
+<footer class="footer bg-white">
+  <div class="container py-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+    <span class="text-muted small">© 2024 Uknowme. All rights reserved.</span>
+    <div class="d-flex gap-3 small">
+      <a class="text-decoration-none" href="/privacy">Privacy</a>
+      <a class="text-decoration-none" href="/terms">Terms</a>
+      <a class="text-decoration-none" href="mailto:support@uknowme.app">Support</a>
+    </div>
+  </div>
+</footer>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9988420021358515"
      crossorigin="anonymous"></script>
 <ins class="adsbygoogle"
