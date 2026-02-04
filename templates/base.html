@@ -15,12 +15,13 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
-    <a class="navbar-brand fw-bold" href="/">Uknowme</a>
+    <a class="navbar-brand fw-bold" href="{% if current_user.is_authenticated %}{{ url_for('dashboard') }}{% else %}/{% endif %}">Uknowme</a>
     <div class="ms-auto">
       {% if current_user.is_authenticated %}
-        <a class="btn btn-outline-light btn-sm" href="/dashboard">Dashboard</a>
+        <a class="btn btn-outline-light btn-sm me-2" href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">Logout</a>
       {% else %}
-        <a class="btn btn-outline-light btn-sm" href="/login">Login</a>
+        <a class="btn btn-outline-light btn-sm" href="{{ url_for('login') }}">Login</a>
       {% endif %}
     </div>
   </div>
