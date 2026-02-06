@@ -88,7 +88,7 @@
           </ul>
         </div>
 
-        {% if current_user.is_admin and current_user.email|lower == "issirdavid@gmail.com" %}
+        {% if current_user.is_admin %}
           <a class="btn btn-outline-light btn-sm" href="/admin">Admin</a>
         {% endif %}
         <a class="btn btn-outline-light btn-sm" href="/dashboard">Dashboard</a>
