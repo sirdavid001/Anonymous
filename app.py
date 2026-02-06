@@ -531,6 +531,16 @@ def privacy():
     return render_template("privacy.html")
 
 
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+
+@app.route("/terms")
+def terms():
+    return render_template("terms.html")
+
+
 @app.route("/report/<int:msg_id>", methods=["POST"])
 @login_required
 def report_message(msg_id):
@@ -547,5 +557,4 @@ def report_message(msg_id):
 
 if __name__ == "__main__":
     app.run()
-
 
