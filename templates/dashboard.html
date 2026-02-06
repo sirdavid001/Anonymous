@@ -1,48 +1,50 @@
 {% extends "base.html" %}
-{% block title %}Dashboard{% endblock %}
+{% block title %}Dashboard – Uknowme{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-  <div class="col">
-    <h3 class="fw-bold">Your inbox</h3>
-    <p class="text-muted">Anonymous messages sent to you</p>
-
-    <div class="alert alert-light border">
-      <strong>Your link:</strong><br>
-      <input class="form-control mt-2" value="{{ inbox_link }}" readonly>
-    </div>
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h4 class="fw-bold">Your Anonymous Inbox</h4>
+    <p class="text-muted">
+      Share your link to receive honest anonymous feedback.
+    </p>
+    <input class="form-control" readonly value="{{ inbox_link }}">
   </div>
 </div>
 
-<div class="row">
-  {% if messages %}
-    {% for msg in messages %}
-      <div class="col-md-6 mb-3">
-        <div class="card p-3 shadow-sm">
-          <p>{{ msg.text }}</p>
+<!-- CONTENT FIRST (required by AdSense) -->
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="fw-bold">Messages</h5>
 
-          {% if msg.media_type == "image" %}
-            <img src="{{ url_for('static', filename=msg.media_path) }}" class="img-fluid rounded">
-          {% endif %}
-
-          <small class="text-muted">{{ msg.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="border rounded p-3 mb-2">
+          <p class="mb-1">{{ msg.text }}</p>
+          <small class="text-muted">{{ msg.created_at.strftime('%d %b %Y') }}</small>
         </div>
-      </div>
-    {% endfor %}
-  {% else %}
-    <p class="text-muted">No messages yet.</p>
-  {% endif %}
-  <div class="ad-soft">
-  <span class="ad-label">Sponsored</span>
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-client="ca-pub-XXXXXXXXXXXX"
-       data-ad-slot="2222222222"
-       data-ad-format="auto"></ins>
-  <script>
-    (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
+      {% endfor %}
+    {% else %}
+      <p class="text-muted">No messages yet.</p>
+    {% endif %}
+  </div>
 </div>
 
+<!-- ADS AFTER CONTENT -->
+<div class="card shadow-sm">
+  <div class="card-body text-center">
+    <script async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9988420021358515"
+      crossorigin="anonymous"></script>
+
+    <ins class="adsbygoogle"
+      style="display:block"
+      data-ad-client="ca-pub-9988420021358515"
+      data-ad-slot="1234567890"
+      data-ad-format="auto"
+      data-full-width-responsive="true"></ins>
+
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
 </div>
 {% endblock %}

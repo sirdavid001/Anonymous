@@ -1,23 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container d-flex align-items-center justify-content-center" style="min-height:85vh">
-  <div class="card shadow border-0" style="max-width:420px;width:100%">
-    <div class="card-body p-4 text-center">
-
-      <div class="alert alert-warning">
-        Email not verified
-      </div>
-
-      <h5 class="fw-bold mb-2">Check your inbox</h5>
-      <p class="text-muted mb-4">
-        You must verify your email before continuing.
-      </p>
-
-      <form method="post" action="{{ url_for('resend_verification') }}">
-        <button class="btn btn-info w-100">Resend verification email</button>
-      </form>
-
-    </div>
-  </div>
+<div class="alert alert-warning shadow-sm">
+  <h4>Email not verified</h4>
+  <p>Please verify your email to continue.</p>
+  <form method="POST" action="/resend-verification">
+    <button class="btn btn-primary">Resend Verification</button>
+  </form>
 </div>
 {% endblock %}

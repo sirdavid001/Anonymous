@@ -115,6 +115,11 @@ def landing():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    if current_user.is_authenticated:
+        if current_user.is_verified:
+            return redirect(url_for("dashboard"))
+        return redirect(url_for("unverified"))
+
     form = RegisterForm()
 
     if form.validate_on_submit():
@@ -536,11 +541,29 @@ def privacy():
     return render_template("privacy.html")
 
 
+ codex/identify-missing-elements-in-website
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+
+ main
 @app.route("/terms")
 def terms():
     return render_template("terms.html")
 
 
+codex/identify-missing-elements-in-website
+@app.route("/report/<int:msg_id>", methods=["POST"])
+@login_required
+def report_message(msg_id):
+    msg = Message.query.get_or_404(msg_id)
+    msg.reported = True
+    db.session.commit()
+    flash("Message reported.")
+    return redirect(request.referrer)
+ main
 
 
 # --------------------
@@ -549,3 +572,6 @@ def terms():
 
 if __name__ == "__main__":
     app.run()
+codex/identify-missing-elements-in-website
+
+main

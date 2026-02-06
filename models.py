@@ -43,3 +43,4 @@ class RateLimit(db.Model):
 is_admin = db.Column(db.Boolean, default=False)
 
 
+reported = db.Column(db.Boolean, default=False)
