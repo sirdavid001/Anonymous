@@ -165,7 +165,7 @@ def register():
         token = generate_verify_token(user.email)
         verify_link = url_for("verify_email", token=token, _external=True)
 
-        # Send verification email (NOT enforced)
+        # Send verification email (verification is enforced before dashboard access)
         send_email_http(
             user.email,
             "Verify your Uknowme email",
@@ -433,7 +433,7 @@ def verify_email(token):
         user.is_verified = True
         db.session.commit()
 
-    return render_template("verify_success.html")
+    return render_template("verify_success.html", success=True)
 
 
 
@@ -599,4 +599,7 @@ if __name__ == "__main__":
     app.run()
 codex/identify-missing-elements-in-website
 
+codex/fix-typo-in-codebase
+
+main
 main
