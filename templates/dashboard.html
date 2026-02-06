@@ -11,7 +11,19 @@
           Share your link to receive honest anonymous feedback.
         </p>
       </div>
-      <input class="form-control mt-3" readonly value="{{ inbox_link }}">
+      <div class="input-group mt-3">
+        <input
+          id="inboxLinkInput"
+          class="form-control"
+          readonly
+          value="{{ inbox_link }}"
+          aria-label="Your anonymous inbox link"
+        >
+        <button id="copyInboxBtn" class="btn btn-primary" type="button">
+          Copy link
+        </button>
+      </div>
+      <small id="copyInboxStatus" class="text-muted d-block mt-2">Tap copy to share your inbox link.</small>
     </div>
   </div>
 
@@ -51,4 +63,55 @@
     </div>
   </div>
 </div>
+<script>
+(() => {
+  const input = document.getElementById("inboxLinkInput");
+  const copyBtn = document.getElementById("copyInboxBtn");
+  const status = document.getElementById("copyInboxStatus");
+
+  if (!input || !copyBtn || !status) {
+    return;
+  }
+
+  const updateStatus = (message, isError = false) => {
+    status.textContent = message;
+    status.classList.remove("text-muted", "text-success", "text-danger");
+    status.classList.add(isError ? "text-danger" : "text-success");
+    if (!isError) {
+      setTimeout(() => {
+        status.textContent = "Tap copy to share your inbox link.";
+        status.classList.remove("text-success", "text-danger");
+        status.classList.add("text-muted");
+      }, 2200);
+    }
+  };
+
+  const fallbackCopy = () => {
+    input.focus();
+    input.select();
+    input.setSelectionRange(0, input.value.length);
+    return document.execCommand("copy");
+  };
+
+  copyBtn.addEventListener("click", async () => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(input.value);
+      } else if (!fallbackCopy()) {
+        throw new Error("Copy command failed");
+      }
+
+      copyBtn.textContent = "Copied";
+      updateStatus("Inbox link copied.", false);
+      setTimeout(() => {
+        copyBtn.textContent = "Copy link";
+      }, 1400);
+    } catch (err) {
+      updateStatus("Could not copy automatically. Select and copy manually.", true);
+      input.focus();
+      input.select();
+    }
+  });
+})();
+</script>
 {% endblock %}
