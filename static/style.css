@@ -309,6 +309,7 @@ input, textarea {
   box-shadow: 0 2px 10px rgba(0,0,0,.08);
 }
 
+<<<<<<< HEAD
 .navbar .navbar-brand,
 .navbar .nav-link,
 .navbar .btn {
@@ -353,4 +354,83 @@ footer a {
 
 footer a:hover {
   color: var(--accent);
+=======
+/* ===== NAVBAR POLISH ===== */
+.site-nav {
+  padding: .65rem 0;
+  background: linear-gradient(90deg, #111827, #0f172a) !important;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.site-nav .container {
+  display: flex;
+  align-items: center;
+}
+
+.nav-brand {
+  letter-spacing: .02em;
+  font-size: 1.1rem;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+}
+
+.nav-actions .nav-btn {
+  width: auto;
+  min-width: 112px;
+  border-radius: 999px;
+  padding: .35rem .95rem;
+  font-weight: 600;
+}
+
+/* ===== DASHBOARD LAYOUT ===== */
+.dashboard-page {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.dashboard-page .card {
+  max-width: none;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #111827;
+  box-shadow: 0 14px 35px rgba(15,23,42,.08) !important;
+}
+
+.dashboard-page .form-control {
+  background: #ffffff;
+  color: #111827;
+  border: 1px solid #d1d5db;
+}
+
+.dashboard-page .form-control:focus {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 .2rem rgba(14,165,233,.15);
+}
+
+.dashboard-hero {
+  position: relative;
+}
+
+.dashboard-hero-head {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+}
+
+.dashboard-title {
+  margin: 0;
+}
+
+.dashboard-subtitle {
+  max-width: 60ch;
+}
+
+@media (max-width: 576px) {
+  .nav-actions .nav-btn {
+    min-width: 96px;
+  }
+>>>>>>> 64a37f1 (fixxed)
 }

@@ -1,6 +1,7 @@
 import os
 import secrets
 from flask import Flask, abort, render_template, redirect, request, flash, url_for
+from sqlalchemy import inspect, text
 from flask_login import (
     LoginManager, login_user,
     login_required, logout_user, current_user
@@ -58,6 +59,30 @@ print("DB URI:", app.config["SQLALCHEMY_DATABASE_URI"])
 db.init_app(app)
 
 serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
+
+
+def ensure_database_schema():
+    db.create_all()
+
+    columns = {col["name"] for col in inspect(db.engine).get_columns("message")}
+    if "reported" in columns:
+        return
+
+    try:
+        db.session.execute(
+            text("ALTER TABLE message ADD COLUMN reported BOOLEAN DEFAULT FALSE")
+        )
+        db.session.commit()
+        print("Migrated DB schema: added message.reported")
+    except Exception:
+        db.session.rollback()
+        refreshed = {col["name"] for col in inspect(db.engine).get_columns("message")}
+        if "reported" not in refreshed:
+            raise
+
+
+with app.app_context():
+    ensure_database_schema()
 
 
 
