@@ -110,6 +110,11 @@ class LoginForm(FlaskForm):
 # --------------------
 @app.route("/", methods=["GET", "POST"])
 def register():
+    if current_user.is_authenticated:
+        if current_user.is_verified:
+            return redirect(url_for("dashboard"))
+        return redirect(url_for("unverified"))
+
     form = RegisterForm()
 
     if form.validate_on_submit():
