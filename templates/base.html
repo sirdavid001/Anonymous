@@ -88,7 +88,7 @@
           </ul>
         </div>
 
-        {% if current_user.is_admin %}
+        {% if can_access_admin %}
           <a class="btn btn-outline-light btn-sm" href="/admin">Admin</a>
         {% endif %}
         <a class="btn btn-outline-light btn-sm" href="/dashboard">Dashboard</a>
@@ -123,11 +123,6 @@
      data-ad-format="autorelaxed"
      data-ad-client="ca-pub-9988420021358515"
      data-ad-slot="1208889163"></ins>
-<footer class="text-center text-muted py-4">
-  <a href="/about">About</a> ·
-  <a href="/privacy">Privacy</a> ·
-  <a href="/terms">Terms</a>
-</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 

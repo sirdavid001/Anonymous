@@ -1,77 +1,213 @@
 {% extends "base.html" %}
 {% block title %}Admin – Uknowme{% endblock %}
+
+{% block head %}
+<style>
+  .admin-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .admin-stat {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--card);
+    padding: 0.9rem 1rem;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  }
+
+  .admin-stat .label {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 0.2rem;
+  }
+
+  .admin-stat .value {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin: 0;
+  }
+
+  .admin-table td,
+  .admin-table th {
+    vertical-align: middle;
+  }
+
+  .action-row {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+
+  .msg-preview {
+    max-width: 320px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sender-info {
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-xl-10">
-    <div class="card shadow-sm mb-4">
-      <div class="card-body">
-        <h4 class="fw-bold mb-1">Admin Dashboard</h4>
-        <p class="text-muted mb-0">Restricted access for {{ current_user.email }}</p>
+{% set flashes = get_flashed_messages(with_categories=true) %}
+<div class="admin-wrap">
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h4 class="fw-bold mb-1">Admin Dashboard</h4>
+      <p class="text-muted mb-0">Restricted backend tools for {{ current_user.email }}</p>
+    </div>
+  </div>
+
+  {% for category, message in flashes %}
+    {% set alert_class = "alert-info" %}
+    {% if category == "success" %}
+      {% set alert_class = "alert-success" %}
+    {% elif category == "danger" %}
+      {% set alert_class = "alert-danger" %}
+    {% endif %}
+    <div class="alert {{ alert_class }}">{{ message }}</div>
+  {% endfor %}
+
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+      <div class="admin-stat">
+        <div class="label">Total Users</div>
+        <p class="value">{{ users|length }}</p>
       </div>
     </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="admin-stat">
+        <div class="label">Verified Users</div>
+        <p class="value">{{ verified_count }}</p>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="admin-stat">
+        <div class="label">Suspended Users</div>
+        <p class="value">{{ suspended_count }}</p>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="admin-stat">
+        <div class="label">Total Messages</div>
+        <p class="value">{{ total_messages }}</p>
+      </div>
+    </div>
+  </div>
 
-    <div class="card shadow-sm mb-4">
-      <div class="card-body">
-        <h5 class="fw-bold mb-3">Users ({{ users|length }})</h5>
-        {% if users %}
-          <div class="table-responsive">
-            <table class="table table-sm align-middle mb-0">
-              <thead>
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="fw-bold mb-3">All Users</h5>
+      {% if users %}
+        <div class="table-responsive">
+          <table class="table table-sm admin-table mb-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Email</th>
+                <th>Slug</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in users %}
                 <tr>
-                  <th>Email</th>
-                  <th>Verified</th>
-                  <th>Admin</th>
+                  <td>{{ user.id }}</td>
+                  <td>{{ user.email }}</td>
+                  <td>{{ user.slug }}</td>
+                  <td>
+                    {% if user.is_admin %}
+                      <span class="badge bg-primary">Admin</span>
+                    {% endif %}
+                    {% if user.is_verified %}
+                      <span class="badge bg-success">Verified</span>
+                    {% else %}
+                      <span class="badge bg-secondary">Unverified</span>
+                    {% endif %}
+                    {% if user.is_suspended %}
+                      <span class="badge bg-danger">Suspended</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="action-row">
+                      <a class="btn btn-outline-dark btn-sm w-auto px-3 py-1" href="{{ url_for('admin_user', user_id=user.id) }}">
+                        Open
+                      </a>
+                      <form method="POST" action="{{ url_for('admin_toggle_suspend', user_id=user.id) }}">
+                        <button class="btn btn-outline-warning btn-sm w-auto px-3 py-1">
+                          {% if user.is_suspended %}Unsuspend{% else %}Suspend{% endif %}
+                        </button>
+                      </form>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {% for user in users %}
-                  <tr>
-                    <td>{{ user.email }}</td>
-                    <td>
-                      {% if user.is_verified %}
-                        <span class="badge bg-success">Yes</span>
-                      {% else %}
-                        <span class="badge bg-secondary">No</span>
-                      {% endif %}
-                    </td>
-                    <td>
-                      {% if user.is_admin %}
-                        <span class="badge bg-primary">Yes</span>
-                      {% else %}
-                        <span class="badge bg-secondary">No</span>
-                      {% endif %}
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% else %}
-          <p class="text-muted mb-0">No users found.</p>
-        {% endif %}
-      </div>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">No users found.</p>
+      {% endif %}
     </div>
+  </div>
 
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h5 class="fw-bold mb-3">Latest Messages</h5>
-        {% if messages %}
-          {% for msg in messages %}
-            <div class="border rounded p-3 mb-2">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <small class="text-muted">{{ msg.created_at.strftime('%d %b %Y %H:%M') }}</small>
-                {% if msg.reported %}
-                  <span class="badge bg-danger">Reported</span>
-                {% endif %}
-              </div>
-              <p class="mb-1">{{ msg.text or "(No text)" }}</p>
-              <small class="text-muted">Recipient user ID: {{ msg.user_id }}</small>
-            </div>
-          {% endfor %}
-        {% else %}
-          <p class="text-muted mb-0">No messages yet.</p>
-        {% endif %}
-      </div>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h5 class="fw-bold mb-3">Recent Messages</h5>
+      {% if messages %}
+        <div class="table-responsive">
+          <table class="table table-sm admin-table mb-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Recipient</th>
+                <th>Message</th>
+                <th>Sender Info</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for msg in messages %}
+                <tr>
+                  <td>#{{ msg.id }}</td>
+                  <td>
+                    <a href="{{ url_for('admin_user', user_id=msg.user_id) }}">
+                      User {{ msg.user_id }}
+                    </a>
+                  </td>
+                  <td class="msg-preview">{{ msg.text or "(No text)" }}</td>
+                  <td>
+                    <div class="sender-info">
+                      <div>Email: {{ msg.sender_account_email or "Guest" }}</div>
+                      <div>IP: {{ msg.sender_ip or "N/A" }}</div>
+                    </div>
+                  </td>
+                  <td>{{ msg.created_at.strftime('%d %b %Y %H:%M') }}</td>
+                  <td>
+                    <div class="action-row">
+                      <a class="btn btn-outline-dark btn-sm w-auto px-3 py-1" href="{{ url_for('admin_user', user_id=msg.user_id) }}">
+                        Manage
+                      </a>
+                      <form method="POST" action="{{ url_for('admin_delete_message', msg_id=msg.id) }}">
+                        <button class="btn btn-outline-danger btn-sm w-auto px-3 py-1">Delete</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">No messages yet.</p>
+      {% endif %}
     </div>
   </div>
 </div>

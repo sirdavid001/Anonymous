@@ -2,6 +2,55 @@
 {% block title %}Dashboard – Uknowme{% endblock %}
 {% block head %}
 <style>
+  .dash-link-wrap {
+    margin-top: 0.95rem;
+    padding: 0.7rem;
+    border-radius: 16px;
+    border: 1px solid rgba(37, 99, 235, 0.26);
+    background:
+      radial-gradient(130% 120% at 0% 0%, rgba(37, 99, 235, 0.12), transparent 60%),
+      radial-gradient(110% 130% at 100% 100%, rgba(14, 165, 233, 0.12), transparent 60%),
+      var(--card);
+  }
+
+  .dash-link-group {
+    display: flex;
+    align-items: stretch;
+    gap: 0.55rem;
+  }
+
+  .dash-link-input {
+    border: 1px solid rgba(37, 99, 235, 0.28) !important;
+    border-radius: 12px !important;
+    background: #f8fbff !important;
+    color: #1d4ed8 !important;
+    font-weight: 600;
+  }
+
+  .dash-link-input:focus {
+    border-color: rgba(14, 165, 233, 0.7) !important;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18) !important;
+  }
+
+  .dash-copy-btn {
+    width: auto;
+    min-width: 124px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #2563eb, #0ea5e9);
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 10px 22px rgba(37, 99, 235, 0.28);
+  }
+
+  .dash-copy-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .dash-link-note {
+    margin-top: 0.5rem;
+  }
+
   .dash-share-grid {
     margin-top: 0.75rem;
     display: grid;
@@ -54,9 +103,23 @@
   }
 
   @media (max-width: 768px) {
+    .dash-link-group {
+      flex-direction: column;
+    }
+
+    .dash-copy-btn {
+      width: 100%;
+    }
+
     .dash-share-grid {
       grid-template-columns: 1fr;
     }
+  }
+
+  html[data-theme="dark"] .dash-link-input {
+    background: #0c1730 !important;
+    color: #93c5fd !important;
+    border-color: rgba(56, 189, 248, 0.35) !important;
   }
 </style>
 {% endblock %}
@@ -71,19 +134,21 @@
           Share your link to receive honest anonymous feedback.
         </p>
       </div>
-      <div class="input-group mt-3">
-        <input
-          id="inboxLinkInput"
-          class="form-control"
-          readonly
-          value="{{ inbox_link }}"
-          aria-label="Your anonymous inbox link"
-        >
-        <button id="copyInboxBtn" class="btn btn-primary" type="button">
-          Copy link
-        </button>
+      <div class="dash-link-wrap">
+        <div class="dash-link-group">
+          <input
+            id="inboxLinkInput"
+            class="form-control dash-link-input"
+            readonly
+            value="{{ inbox_link }}"
+            aria-label="Your anonymous inbox link"
+          >
+          <button id="copyInboxBtn" class="btn dash-copy-btn" type="button">
+            Copy link
+          </button>
+        </div>
       </div>
-      <small id="copyInboxStatus" class="text-muted d-block mt-2">Tap copy to share your inbox link.</small>
+      <small id="copyInboxStatus" class="text-muted d-block dash-link-note">Tap copy to share your inbox link.</small>
       <div class="dash-share-grid">
         <a id="shareWhatsAppBtn" class="dash-share-btn dash-share-wa" target="_blank" rel="noopener noreferrer">WhatsApp</a>
         <a id="shareTelegramBtn" class="dash-share-btn dash-share-tg" target="_blank" rel="noopener noreferrer">Telegram</a>

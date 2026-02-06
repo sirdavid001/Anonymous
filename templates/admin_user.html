@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% block title %}Admin User – Uknowme{% endblock %}
+
+{% block head %}
+<style>
+  .admin-user-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .admin-user-actions {
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .admin-user-actions .btn {
+    width: auto;
+  }
+
+  .message-card {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--card);
+    padding: 1rem;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+  }
+
+  .meta-line {
+    color: var(--muted);
+    font-size: 0.84rem;
+    margin-bottom: 0.25rem;
+    word-break: break-word;
+  }
+
+  .message-tools {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.7rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{% set flashes = get_flashed_messages(with_categories=true) %}
+<div class="admin-user-wrap">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold mb-0">User #{{ user.id }}</h4>
+    <a class="btn btn-outline-dark btn-sm w-auto px-3 py-2" href="{{ url_for('admin') }}">Back to admin</a>
+  </div>
+
+  {% for category, message in flashes %}
+    {% set alert_class = "alert-info" %}
+    {% if category == "success" %}
+      {% set alert_class = "alert-success" %}
+    {% elif category == "danger" %}
+      {% set alert_class = "alert-danger" %}
+    {% endif %}
+    <div class="alert {{ alert_class }}">{{ message }}</div>
+  {% endfor %}
+
+  <div class="row g-4 mb-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3">Account Details</h5>
+          <p class="mb-1"><strong>Email:</strong> {{ user.email }}</p>
+          <p class="mb-1"><strong>Slug:</strong> {{ user.slug }}</p>
+          <p class="mb-1"><strong>Verified:</strong> {{ "Yes" if user.is_verified else "No" }}</p>
+          <p class="mb-1"><strong>Suspended:</strong> {{ "Yes" if user.is_suspended else "No" }}</p>
+          {% if user.suspended_at %}
+            <p class="mb-1"><strong>Suspended At:</strong> {{ user.suspended_at.strftime('%d %b %Y %H:%M') }}</p>
+          {% endif %}
+          <p class="mb-0"><strong>Admin:</strong> {{ "Yes" if user.is_admin else "No" }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3">Account Actions</h5>
+          <div class="admin-user-actions">
+            <form method="POST" action="{{ url_for('admin_update_user_identity', user_id=user.id) }}">
+              <label class="form-label small text-muted mb-1">Edit Email + Link Slug</label>
+              <div class="d-flex gap-2 flex-wrap mb-2">
+                <input
+                  type="email"
+                  name="email"
+                  class="form-control"
+                  value="{{ user.email }}"
+                  placeholder="user@example.com"
+                  required
+                >
+                <input
+                  type="text"
+                  name="slug"
+                  class="form-control"
+                  value="{{ user.slug }}"
+                  placeholder="profile-slug"
+                  required
+                >
+                <button class="btn btn-outline-dark btn-sm px-3 py-2 w-auto">Save Identity</button>
+              </div>
+            </form>
+
+            <div class="d-flex gap-2 flex-wrap">
+              <form method="POST" action="{{ url_for('admin_toggle_suspend', user_id=user.id) }}">
+                <button class="btn btn-outline-warning btn-sm px-3 py-2">
+                  {% if user.is_suspended %}Unsuspend Account{% else %}Suspend Account{% endif %}
+                </button>
+              </form>
+              <form method="POST" action="{{ url_for('admin_toggle_verify', user_id=user.id) }}">
+                <button class="btn btn-outline-secondary btn-sm px-3 py-2">
+                  {% if user.is_verified %}Mark Unverified{% else %}Mark Verified{% endif %}
+                </button>
+              </form>
+            </div>
+
+            <form method="POST" action="{{ url_for('admin_change_user_password', user_id=user.id) }}">
+              <label class="form-label small text-muted mb-1">Set New Password</label>
+              <div class="d-flex gap-2 flex-wrap">
+                <input
+                  type="password"
+                  name="new_password"
+                  class="form-control"
+                  placeholder="New strong password"
+                  required
+                >
+                <button class="btn btn-primary btn-sm px-3 py-2 w-auto">Update Password</button>
+              </div>
+            </form>
+
+            <form method="POST" action="{{ url_for('admin_delete_user', user_id=user.id) }}" onsubmit="return confirm('Delete this user and all their messages?');">
+              <button class="btn btn-danger btn-sm px-3 py-2">Delete User + Messages</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h5 class="fw-bold mb-3">Messages for This User ({{ messages|length }})</h5>
+      {% if messages %}
+        <div class="d-grid gap-3">
+          {% for msg in messages %}
+            <div class="message-card">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <small class="text-muted">Message #{{ msg.id }} • {{ msg.created_at.strftime('%d %b %Y %H:%M') }}</small>
+                {% if msg.reported %}
+                  <span class="badge bg-danger">Reported</span>
+                {% endif %}
+              </div>
+
+              <div class="meta-line"><strong>Sender Email:</strong> {{ msg.sender_account_email or "Guest/Unknown" }}</div>
+              <div class="meta-line"><strong>Sender IP:</strong> {{ msg.sender_ip or "N/A" }}</div>
+              <div class="meta-line"><strong>User Agent:</strong> {{ msg.sender_user_agent or "N/A" }}</div>
+              {% if msg.media_path %}
+                <div class="meta-line">
+                  <strong>Media:</strong>
+                  <a href="{{ url_for('static', filename=msg.media_path) }}" target="_blank" rel="noopener noreferrer">
+                    {{ msg.media_path }}
+                  </a>
+                </div>
+              {% endif %}
+              {% if msg.edited_at %}
+                <div class="meta-line"><strong>Edited At:</strong> {{ msg.edited_at.strftime('%d %b %Y %H:%M') }}</div>
+              {% endif %}
+
+              <form method="POST" action="{{ url_for('admin_edit_message', msg_id=msg.id) }}">
+                <label class="form-label small text-muted mt-2 mb-1">Edit Message Text</label>
+                <textarea name="text" class="form-control" rows="3" required>{{ msg.text or "" }}</textarea>
+                <div class="message-tools">
+                  <button class="btn btn-primary btn-sm px-3 py-2 w-auto">Save Edit</button>
+                </div>
+              </form>
+
+              <div class="message-tools">
+                <form method="POST" action="{{ url_for('admin_toggle_message_reported', msg_id=msg.id) }}">
+                  <button class="btn btn-outline-secondary btn-sm px-3 py-2 w-auto">
+                    {% if msg.reported %}Clear Reported{% else %}Mark Reported{% endif %}
+                  </button>
+                </form>
+                <form method="POST" action="{{ url_for('admin_delete_message', msg_id=msg.id) }}" onsubmit="return confirm('Delete this message?');">
+                  <button class="btn btn-outline-danger btn-sm px-3 py-2 w-auto">Delete Message</button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">No messages for this user yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

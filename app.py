@@ -1,5 +1,7 @@
 import os
 import secrets
+from datetime import datetime
+import re
 from urllib.parse import urljoin, urlparse
 from flask import Flask, abort, render_template, redirect, request, flash, url_for
 from sqlalchemy import inspect, text
@@ -58,21 +60,95 @@ serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
 def ensure_database_schema():
     db.create_all()
 
-    columns = {col["name"] for col in inspect(db.engine).get_columns("message")}
-    if "reported" in columns:
-        return
+    def ensure_column(table_name, column_name, ddl_fragment):
+        columns = {col["name"] for col in inspect(db.engine).get_columns(table_name)}
+        if column_name in columns:
+            return
 
-    try:
+        try:
+            db.session.execute(
+                text(f'ALTER TABLE "{table_name}" ADD COLUMN {ddl_fragment}')
+            )
+            db.session.commit()
+            print(f"Migrated DB schema: added {table_name}.{column_name}")
+        except Exception:
+            db.session.rollback()
+            refreshed = {
+                col["name"] for col in inspect(db.engine).get_columns(table_name)
+            }
+            if column_name not in refreshed:
+                raise
+
+    def ensure_unique_index(table_name, index_name, column_name):
+        inspector = inspect(db.engine)
+        indexes = inspector.get_indexes(table_name)
+        unique_constraints = inspector.get_unique_constraints(table_name)
+
+        has_unique_for_column = any(
+            idx.get("unique") and idx.get("column_names") == [column_name]
+            for idx in indexes
+        ) or any(
+            constraint.get("column_names") == [column_name]
+            for constraint in unique_constraints
+        )
+
+        if has_unique_for_column or any(idx["name"] == index_name for idx in indexes):
+            return
         db.session.execute(
-            text("ALTER TABLE message ADD COLUMN reported BOOLEAN DEFAULT FALSE")
+            text(
+                f'CREATE UNIQUE INDEX IF NOT EXISTS "{index_name}" '
+                f'ON "{table_name}" ({column_name})'
+            )
         )
         db.session.commit()
-        print("Migrated DB schema: added message.reported")
-    except Exception:
-        db.session.rollback()
-        refreshed = {col["name"] for col in inspect(db.engine).get_columns("message")}
-        if "reported" not in refreshed:
-            raise
+
+    ensure_column("message", "reported", "reported BOOLEAN DEFAULT FALSE")
+    ensure_column("message", "sender_ip", "sender_ip VARCHAR(64)")
+    ensure_column("message", "sender_user_agent", "sender_user_agent TEXT")
+    ensure_column("message", "sender_account_email", "sender_account_email VARCHAR(120)")
+    ensure_column("message", "edited_at", "edited_at TIMESTAMP")
+    ensure_column("user", "username", "username VARCHAR(30)")
+    ensure_column("user", "is_suspended", "is_suspended BOOLEAN DEFAULT FALSE")
+    ensure_column("user", "suspended_at", "suspended_at TIMESTAMP")
+
+    # Backfill and normalize usernames for existing records.
+    users = User.query.order_by(User.id.asc()).all()
+    taken = set()
+    changed = False
+
+    for user in users:
+        username = (user.username or "").strip().lower()
+        if not re.fullmatch(r"[a-z0-9_]{3,30}", username):
+            seed = (
+                (user.email.split("@")[0] if user.email else None)
+                or user.slug
+                or f"user{user.id}"
+            )
+            base = re.sub(r"[^a-z0-9_]", "", seed.lower())
+            if len(base) < 3:
+                base = f"user{user.id}"
+            username = base[:30]
+
+        candidate = username
+        suffix = 1
+        while (
+            candidate in taken
+            or User.query.filter(User.id != user.id, User.username == candidate).first()
+        ):
+            suffix_txt = str(suffix)
+            prefix_max = max(1, 30 - len(suffix_txt) - 1)
+            candidate = f"{username[:prefix_max]}_{suffix_txt}"
+            suffix += 1
+
+        if user.username != candidate:
+            user.username = candidate
+            changed = True
+        taken.add(candidate)
+
+    if changed:
+        db.session.commit()
+
+    ensure_unique_index("user", "ux_user_username", "username")
 
 
 with app.app_context():
@@ -91,8 +167,75 @@ def allowed_file(filename):
            filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def get_client_ip():
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.remote_addr or "unknown"
+
+
+def is_strong_password(password):
+    if not password or len(password) < 8:
+        return False
+    return bool(re.search(r"[A-Z]", password) and re.search(r"[a-z]", password) and re.search(r"\d", password))
+
+
+def ensure_admin_access():
+    if not current_user.is_authenticated:
+        abort(403)
+    if not is_admin_email(current_user.email):
+        abort(403)
+    if sync_admin_status(current_user):
+        db.session.commit()
+    if not current_user.is_admin:
+        abort(403)
+
+
+def remove_uploaded_media(media_path):
+    if not media_path:
+        return
+
+    file_path = os.path.join(app.static_folder, media_path)
+    if os.path.isfile(file_path):
+        try:
+            os.remove(file_path)
+        except OSError:
+            pass
+
+
+def admin_redirect_back(default_endpoint="admin", **values):
+    referrer = request.referrer
+    if referrer and is_safe_redirect_target(referrer):
+        return redirect(referrer)
+    return redirect(url_for(default_endpoint, **values))
+
+
 def is_admin_email(email):
     return bool(email) and email.strip().lower() in ADMIN_EMAILS
+
+
+def normalize_email(value):
+    return (value or "").strip().lower()
+
+
+def normalize_username(value):
+    return (value or "").strip().lower()
+
+
+def build_unique_slug(base_slug):
+    base_slug = re.sub(r"[^a-z0-9_-]", "", (base_slug or "").strip().lower())
+    if len(base_slug) < 3:
+        base_slug = "user"
+    base_slug = base_slug[:40]
+
+    candidate = base_slug
+    suffix = 1
+    while User.query.filter_by(slug=candidate).first():
+        suffix_txt = str(suffix)
+        prefix_max = max(1, 50 - len(suffix_txt) - 1)
+        candidate = f"{base_slug[:prefix_max]}-{suffix_txt}"
+        suffix += 1
+    return candidate
 
 
 def sync_admin_status(user):
@@ -163,15 +306,30 @@ def enforce_login_for_private_routes():
     if endpoint is None:
         return None
 
-    if endpoint in PUBLIC_ENDPOINTS or endpoint.startswith("static"):
-        return None
-
     if current_user.is_authenticated:
         if sync_admin_status(current_user):
             db.session.commit()
+        if current_user.is_suspended and endpoint != "logout":
+            logout_user()
+            flash("Your account is suspended. Contact support.", "danger")
+            return redirect(url_for("login"))
+        if endpoint in PUBLIC_ENDPOINTS or endpoint.startswith("static"):
+            return None
+        return None
+
+    if endpoint in PUBLIC_ENDPOINTS or endpoint.startswith("static"):
         return None
 
     return redirect(url_for("login", next=request.full_path.rstrip("?")))
+
+
+@app.context_processor
+def inject_permission_helpers():
+    is_admin_user = (
+        current_user.is_authenticated
+        and is_admin_email(getattr(current_user, "email", None))
+    )
+    return {"can_access_admin": is_admin_user}
 
 
 @login_manager.user_loader
@@ -186,6 +344,17 @@ def load_user(user_id):
 # FORMS
 # --------------------
 class RegisterForm(FlaskForm):
+    username = StringField(
+        "Username",
+        validators=[
+            DataRequired(),
+            Length(min=3, max=30),
+            Regexp(
+                r"^[A-Za-z0-9_]+$",
+                message="Username can only use letters, numbers, and underscore.",
+            ),
+        ],
+    )
     email = StringField(validators=[Email(), DataRequired()])
     password = PasswordField(validators=[
         DataRequired(),
@@ -224,18 +393,25 @@ def register():
     form = RegisterForm()
 
     if form.validate_on_submit():
-        # Check if email already exists
-        if User.query.filter_by(email=form.email.data).first():
+        email = normalize_email(form.email.data)
+        username = normalize_username(form.username.data)
+
+        # Check if email/username already exists
+        if User.query.filter_by(email=email).first():
             flash("Email already registered.")
             return redirect(url_for("login"))
+        if User.query.filter_by(username=username).first():
+            flash("Username already taken. Please choose another one.", "danger")
+            return render_template("register.html", form=form)
 
         # Create user
         user = User(
-            email=form.email.data,
+            username=username,
+            email=email,
             password_hash=generate_password_hash(form.password.data),
-            slug=secrets.token_urlsafe(6),
+            slug=build_unique_slug(username),
             is_verified=False,
-            is_admin=is_admin_email(form.email.data)
+            is_admin=is_admin_email(email)
         )
 
         db.session.add(user)
@@ -282,9 +458,13 @@ def login():
             db.session.add(RateLimit(ip=ip, last_hit=now))
         db.session.commit()
 
-        user = User.query.filter_by(email=form.email.data).first()
+        user = User.query.filter_by(email=normalize_email(form.email.data)).first()
 
         if user and check_password_hash(user.password_hash, form.password.data):
+            if user.is_suspended:
+                flash("Your account is suspended. Contact support.")
+                return redirect(url_for("login"))
+
             if sync_admin_status(user):
                 db.session.commit()
 
@@ -351,6 +531,8 @@ def drop(slug):
 
     if not user.is_verified:
         abort(403)
+    if user.is_suspended:
+        abort(403)
 
     form = DropForm()
 
@@ -407,7 +589,12 @@ def drop(slug):
             user_id=user.id,
             text=form.message.data,
             media_path=media_path,
-            media_type=media_type
+            media_type=media_type,
+            sender_ip=get_client_ip(),
+            sender_user_agent=(request.headers.get("User-Agent", "") or "")[:512],
+            sender_account_email=(
+                current_user.email if current_user.is_authenticated else None
+            ),
         )
 
         db.session.add(msg)
@@ -423,11 +610,7 @@ def drop(slug):
         flash("Message sent anonymously.", "success")
         return redirect(request.url)
 
-    recipient_name = (
-        user.email.split("@")[0].strip()
-        if user.email and "@" in user.email
-        else user.slug
-    )
+    recipient_name = user.username or user.slug
     return render_template(
         "drop.html",
         form=form,
@@ -492,7 +675,7 @@ def verify_reset_token(token, expiration=3600):
 @app.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
     if request.method == "POST":
-        email = request.form.get("email", "").strip()
+        email = normalize_email(request.form.get("email", ""))
         user = User.query.filter_by(email=email).first()
         if user:
             token = generate_reset_token(user.email)
@@ -633,23 +816,210 @@ def settings():
 @app.route("/admin")
 @login_required
 def admin():
-    if not is_admin_email(current_user.email):
-        abort(403)
+    ensure_admin_access()
 
-    if sync_admin_status(current_user):
-        db.session.commit()
-
-    if not current_user.is_admin:
-        abort(403)
-
-    messages = Message.query.order_by(Message.created_at.desc()).limit(100).all()
-    users = User.query.all()
+    users = User.query.order_by(User.id.desc()).all()
+    messages = Message.query.order_by(Message.created_at.desc()).limit(250).all()
+    suspended_count = sum(1 for user in users if user.is_suspended)
+    verified_count = sum(1 for user in users if user.is_verified)
 
     return render_template(
         "admin.html",
         messages=messages,
-        users=users
+        users=users,
+        suspended_count=suspended_count,
+        verified_count=verified_count,
+        total_messages=Message.query.count(),
     )
+
+
+@app.route("/admin/user/<int:user_id>")
+@login_required
+def admin_user(user_id):
+    ensure_admin_access()
+    user = User.query.get_or_404(user_id)
+    user_messages = Message.query.filter_by(user_id=user.id).order_by(
+        Message.created_at.desc()
+    ).all()
+
+    return render_template(
+        "admin_user.html",
+        user=user,
+        messages=user_messages,
+    )
+
+
+@app.route("/admin/user/<int:user_id>/suspend", methods=["POST"])
+@login_required
+def admin_toggle_suspend(user_id):
+    ensure_admin_access()
+    user = User.query.get_or_404(user_id)
+
+    if user.id == current_user.id:
+        flash("You cannot suspend your own account.", "danger")
+        return admin_redirect_back("admin_user", user_id=user.id)
+
+    if user.email.lower() == PRIMARY_ADMIN_EMAIL:
+        flash("The primary admin account cannot be suspended.", "danger")
+        return admin_redirect_back("admin_user", user_id=user.id)
+
+    user.is_suspended = not user.is_suspended
+    user.suspended_at = datetime.utcnow() if user.is_suspended else None
+    db.session.commit()
+    flash(
+        f"Account {'suspended' if user.is_suspended else 'reactivated'} for {user.email}.",
+        "success",
+    )
+    return admin_redirect_back("admin_user", user_id=user.id)
+
+
+@app.route("/admin/user/<int:user_id>/verify", methods=["POST"])
+@login_required
+def admin_toggle_verify(user_id):
+    ensure_admin_access()
+    user = User.query.get_or_404(user_id)
+    user.is_verified = not user.is_verified
+    db.session.commit()
+    flash(
+        f"Verification {'enabled' if user.is_verified else 'disabled'} for {user.email}.",
+        "success",
+    )
+    return admin_redirect_back("admin_user", user_id=user.id)
+
+
+@app.route("/admin/user/<int:user_id>/identity", methods=["POST"])
+@login_required
+def admin_update_user_identity(user_id):
+    ensure_admin_access()
+    user = User.query.get_or_404(user_id)
+
+    new_email = normalize_email(request.form.get("email"))
+    new_slug = (request.form.get("slug") or "").strip()
+
+    if not new_email or "@" not in new_email or "." not in new_email.split("@")[-1]:
+        flash("Enter a valid email address.", "danger")
+        return admin_redirect_back("admin_user", user_id=user.id)
+
+    if not re.fullmatch(r"[A-Za-z0-9_-]{4,50}", new_slug):
+        flash(
+            "Slug must be 4-50 characters and contain only letters, numbers, _ or -.",
+            "danger",
+        )
+        return admin_redirect_back("admin_user", user_id=user.id)
+
+    email_taken = User.query.filter(
+        User.id != user.id,
+        User.email == new_email,
+    ).first()
+    if email_taken:
+        flash("That email is already used by another account.", "danger")
+        return admin_redirect_back("admin_user", user_id=user.id)
+
+    slug_taken = User.query.filter(
+        User.id != user.id,
+        User.slug == new_slug,
+    ).first()
+    if slug_taken:
+        flash("That slug is already used by another account.", "danger")
+        return admin_redirect_back("admin_user", user_id=user.id)
+
+    user.email = new_email
+    user.slug = new_slug
+    user.is_admin = is_admin_email(new_email)
+    db.session.commit()
+    flash("User identity updated.", "success")
+    return admin_redirect_back("admin_user", user_id=user.id)
+
+
+@app.route("/admin/user/<int:user_id>/password", methods=["POST"])
+@login_required
+def admin_change_user_password(user_id):
+    ensure_admin_access()
+    user = User.query.get_or_404(user_id)
+    new_password = (request.form.get("new_password") or "").strip()
+
+    if not is_strong_password(new_password):
+        flash(
+            "Password must be at least 8 chars and include uppercase, lowercase, and a number.",
+            "danger",
+        )
+        return admin_redirect_back("admin_user", user_id=user.id)
+
+    user.password_hash = generate_password_hash(new_password)
+    db.session.commit()
+    flash(f"Password updated for {user.email}.", "success")
+    return admin_redirect_back("admin_user", user_id=user.id)
+
+
+@app.route("/admin/user/<int:user_id>/delete", methods=["POST"])
+@login_required
+def admin_delete_user(user_id):
+    ensure_admin_access()
+    user = User.query.get_or_404(user_id)
+
+    if user.id == current_user.id:
+        flash("You cannot delete your own account.", "danger")
+        return admin_redirect_back("admin_user", user_id=user.id)
+
+    if user.email.lower() == PRIMARY_ADMIN_EMAIL:
+        flash("The primary admin account cannot be deleted.", "danger")
+        return admin_redirect_back("admin_user", user_id=user.id)
+
+    messages = Message.query.filter_by(user_id=user.id).all()
+    for msg in messages:
+        remove_uploaded_media(msg.media_path)
+        db.session.delete(msg)
+
+    db.session.delete(user)
+    db.session.commit()
+    flash("User and all associated messages deleted.", "success")
+    return redirect(url_for("admin"))
+
+
+@app.route("/admin/message/<int:msg_id>/edit", methods=["POST"])
+@login_required
+def admin_edit_message(msg_id):
+    ensure_admin_access()
+    msg = Message.query.get_or_404(msg_id)
+    new_text = (request.form.get("text") or "").strip()
+
+    if not new_text:
+        flash("Message text cannot be empty.", "danger")
+        return admin_redirect_back("admin_user", user_id=msg.user_id)
+
+    msg.text = new_text
+    msg.edited_at = datetime.utcnow()
+    db.session.commit()
+    flash("Message updated.", "success")
+    return admin_redirect_back("admin_user", user_id=msg.user_id)
+
+
+@app.route("/admin/message/<int:msg_id>/delete", methods=["POST"])
+@login_required
+def admin_delete_message(msg_id):
+    ensure_admin_access()
+    msg = Message.query.get_or_404(msg_id)
+    owner_id = msg.user_id
+
+    remove_uploaded_media(msg.media_path)
+    db.session.delete(msg)
+    db.session.commit()
+    flash("Message deleted.", "success")
+    return admin_redirect_back("admin_user", user_id=owner_id)
+
+
+@app.route("/admin/message/<int:msg_id>/reported", methods=["POST"])
+@login_required
+def admin_toggle_message_reported(msg_id):
+    ensure_admin_access()
+    msg = Message.query.get_or_404(msg_id)
+    msg.reported = not msg.reported
+    db.session.commit()
+    flash(
+        f"Reported flag {'enabled' if msg.reported else 'cleared'} for message #{msg.id}.",
+        "success",
+    )
+    return admin_redirect_back("admin_user", user_id=msg.user_id)
 
 
 @app.after_request

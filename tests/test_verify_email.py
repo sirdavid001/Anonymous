@@ -36,6 +36,7 @@ def client(app):
 def test_verify_email_success(client, app):
     with app.app_context():
         user = User(
+            username="verify_user",
             email="verify@example.com",
             password_hash="hashed",
             slug="verify",
