@@ -52,8 +52,10 @@ main
     {% endif %}
 
       {% if current_user.is_authenticated %}
-        <a class="btn btn-outline-light btn-sm me-2" href="{{ url_for('dashboard') }}">Dashboard</a>
-        <a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">Logout</a>
+        {% if current_user.is_admin %}
+          <a class="btn btn-outline-light btn-sm me-2" href="/admin">Admin</a>
+        {% endif %}
+        <a class="btn btn-outline-light btn-sm" href="/dashboard">Dashboard</a>
       {% else %}
         <a class="btn btn-outline-light btn-sm" href="{{ url_for('login') }}">Login</a>
       {% endif %}

@@ -24,6 +24,15 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret")
+ADMIN_EMAILS = {
+    email.strip().lower()
+    for email in (
+        os.getenv("ADMIN_EMAILS", "")
+        + ","
+        + os.getenv("ADMIN_EMAIL", "")
+    ).split(",")
+    if email.strip()
+}
 
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -61,6 +70,18 @@ ALLOWED_EXTENSIONS = {
 def allowed_file(filename):
     return "." in filename and \
            filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def sync_admin_status(user):
+    if not ADMIN_EMAILS:
+        return False
+
+    should_be_admin = user.email.lower() in ADMIN_EMAILS
+    if user.is_admin != should_be_admin:
+        user.is_admin = should_be_admin
+        return True
+
+    return False
 
 
 
@@ -133,7 +154,8 @@ def register():
             email=form.email.data,
             password_hash=generate_password_hash(form.password.data),
             slug=secrets.token_urlsafe(6),
-            is_verified=False
+            is_verified=False,
+            is_admin=form.email.data.lower() in ADMIN_EMAILS
         )
 
         db.session.add(user)
@@ -183,6 +205,9 @@ def login():
         user = User.query.filter_by(email=form.email.data).first()
 
         if user and check_password_hash(user.password_hash, form.password.data):
+            if sync_admin_status(user):
+                db.session.commit()
+
             login_user(user)
 
             if not user.is_verified:
