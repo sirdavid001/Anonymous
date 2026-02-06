@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Uknowme — Anonymous messages done right{% endblock %}
 {% block head %}
+<link rel="amphtml" href="{{ url_for('landing_amp', _external=True) }}">
 <style>
   .landing-hero-shell {
     position: relative;

@@ -287,6 +287,7 @@ login_manager.login_view = "login"
 
 PUBLIC_ENDPOINTS = {
     "landing",
+    "landing_amp",
     "login",
     "register",
     "drop",
@@ -381,6 +382,14 @@ class LoginForm(FlaskForm):
 @app.route("/", methods=["GET"])
 def landing():
     return render_template("landing.html")
+
+
+@app.route("/amp", methods=["GET"])
+def landing_amp():
+    return render_template(
+        "landing_amp.html",
+        canonical_url=url_for("landing", _external=True),
+    )
 
 
 @app.route("/register", methods=["GET", "POST"])
