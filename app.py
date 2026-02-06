@@ -131,6 +131,11 @@ class LoginForm(FlaskForm):
 # --------------------
 @app.route("/", methods=["GET", "POST"])
 def register():
+    if current_user.is_authenticated:
+        if current_user.is_verified:
+            return redirect(url_for("dashboard"))
+        return redirect(url_for("unverified"))
+
     form = RegisterForm()
 
     if form.validate_on_submit():
@@ -554,6 +559,16 @@ def add_security_headers(response):
 @app.route("/privacy")
 def privacy():
     return render_template("privacy.html")
+
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+
+@app.route("/terms")
+def terms():
+    return render_template("terms.html")
 
 
 @app.route("/report/<int:msg_id>", methods=["POST"])

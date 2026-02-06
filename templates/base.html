@@ -11,19 +11,29 @@
   <!-- Custom -->
   <link rel="stylesheet" href="/static/style.css">
 </head>
-<body class="bg-light">
+<body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg">
   <div class="container">
-    <a class="navbar-brand fw-bold" href="/">Uknowme</a>
+    <a class="navbar-brand fw-bold" href="{% if current_user.is_authenticated %}{{ url_for('dashboard') }}{% else %}/{% endif %}">Uknowme</a>
     <div class="ms-auto">
+      <div class="dropdown d-inline-block me-2">
+        <button class="btn btn-sm theme-toggle dropdown-toggle" type="button" id="themeMenu" data-bs-toggle="dropdown" aria-expanded="false">
+          Theme: System
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeMenu">
+          <li><button class="dropdown-item" type="button" data-theme-value="light">Light</button></li>
+          <li><button class="dropdown-item" type="button" data-theme-value="dark">Dark</button></li>
+          <li><button class="dropdown-item" type="button" data-theme-value="system">System</button></li>
+        </ul>
+      </div>
       {% if current_user.is_authenticated %}
         {% if current_user.is_admin %}
           <a class="btn btn-outline-light btn-sm me-2" href="/admin">Admin</a>
         {% endif %}
         <a class="btn btn-outline-light btn-sm" href="/dashboard">Dashboard</a>
       {% else %}
-        <a class="btn btn-outline-light btn-sm" href="/login">Login</a>
+        <a class="btn btn-outline-light btn-sm" href="{{ url_for('login') }}">Login</a>
       {% endif %}
     </div>
   </div>
@@ -43,6 +53,46 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+  const themeMenuButton = document.getElementById("themeMenu");
+  const themeStorageKey = "theme-preference";
+
+  const getStoredTheme = () => localStorage.getItem(themeStorageKey) || "system";
+
+  const setThemeLabel = (theme) => {
+    if (!themeMenuButton) {
+      return;
+    }
+    const label = theme.charAt(0).toUpperCase() + theme.slice(1);
+    themeMenuButton.textContent = `Theme: ${label}`;
+  };
+
+  const applyTheme = (theme) => {
+    if (theme === "system") {
+      document.documentElement.removeAttribute("data-theme");
+    } else {
+      document.documentElement.setAttribute("data-theme", theme);
+    }
+    setThemeLabel(theme);
+  };
+
+  const storedTheme = getStoredTheme();
+  applyTheme(storedTheme);
+
+  document.querySelectorAll("[data-theme-value]").forEach((item) => {
+    item.addEventListener("click", () => {
+      const selectedTheme = item.getAttribute("data-theme-value");
+      localStorage.setItem(themeStorageKey, selectedTheme);
+      applyTheme(selectedTheme);
+    });
+  });
+
+  const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  mediaQuery.addEventListener("change", () => {
+    if (getStoredTheme() === "system") {
+      applyTheme("system");
+    }
+  });
+
   document.querySelectorAll("form").forEach(form => {
     form.addEventListener("submit", () => {
       const btn = form.querySelector("button[type=submit]");
