@@ -1,35 +1,189 @@
 {% extends "base.html" %}
 {% block title %}Uknowme — Anonymous messages done right{% endblock %}
+{% block head %}
+<style>
+  .landing-hero-shell {
+    position: relative;
+    overflow: hidden;
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    background:
+      radial-gradient(120% 140% at 0% 0%, rgba(37, 99, 235, 0.16), transparent 58%),
+      radial-gradient(90% 120% at 100% 100%, rgba(14, 165, 233, 0.16), transparent 56%),
+      var(--card);
+    box-shadow: var(--shadow);
+    padding: clamp(1.4rem, 3.5vw, 2.8rem);
+  }
+
+  .landing-eyebrow {
+    display: inline-block;
+    margin-bottom: 0.9rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    background: rgba(37, 99, 235, 0.08);
+    color: #1d4ed8;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .landing-hero-shell h1 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.08;
+    margin-bottom: 0.8rem;
+  }
+
+  .landing-subtitle {
+    max-width: 58ch;
+    margin: 0 auto;
+    color: var(--muted);
+    font-size: clamp(1rem, 1.8vw, 1.2rem);
+  }
+
+  .landing-cta-row {
+    margin-top: 1.4rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .landing-why {
+    margin-top: 2.2rem;
+  }
+
+  .landing-why-head {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .landing-why-head h2 {
+    font-size: clamp(1.5rem, 2.6vw, 2.2rem);
+    margin-bottom: 0.45rem;
+  }
+
+  .landing-why-head p {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .why-card {
+    height: 100%;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    box-shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
+    padding: 1.2rem;
+  }
+
+  .why-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.85rem;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    box-shadow: 0 10px 22px rgba(37, 99, 235, 0.25);
+  }
+
+  .why-card h5 {
+    margin-bottom: 0.45rem;
+  }
+
+  .why-card p {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .share-strip {
+    margin-top: 1.3rem;
+    border-radius: 16px;
+    border: 1px solid rgba(37, 99, 235, 0.18);
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.12), rgba(14, 165, 233, 0.08));
+    padding: 0.95rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.55rem;
+  }
+
+  .share-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid rgba(37, 99, 235, 0.26);
+    padding: 0.35rem 0.72rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #1d4ed8;
+    background: rgba(255, 255, 255, 0.7);
+  }
+</style>
+{% endblock %}
 
 {% block content %}
 <section class="hero text-center">
-  <h1 class="display-5 fw-bold">Get honest feedback without the awkwardness</h1>
-  <p class="lead text-muted mt-3">
-    Uknowme gives you a shareable link so friends and followers can send anonymous messages securely and respectfully.
-  </p>
-  <div class="d-flex justify-content-center gap-3 mt-4">
-    <a href="/register" class="btn btn-primary btn-lg">Create your inbox</a>
-    <a href="/login" class="btn btn-outline-secondary btn-lg">I already have an account</a>
+  <div class="landing-hero-shell">
+    <span class="landing-eyebrow">Anonymous Feedback</span>
+    <h1 class="display-5 fw-bold">Get honest feedback without the awkwardness</h1>
+    <p class="landing-subtitle">
+      Uknowme gives you a shareable link so friends and followers can send anonymous messages securely and respectfully.
+    </p>
+    <div class="landing-cta-row">
+      <a href="/register" class="btn btn-primary btn-lg">Create your inbox</a>
+      <a href="/login" class="btn btn-outline-secondary btn-lg">I already have an account</a>
+    </div>
+    <div class="share-strip">
+      <span class="share-chip">WhatsApp-ready</span>
+      <span class="share-chip">Telegram-ready</span>
+      <span class="share-chip">Copy in 1 tap</span>
+      <span class="share-chip">Native share support</span>
+    </div>
   </div>
 </section>
 
-<section class="row g-4 mt-4">
-  <div class="col-md-4">
-    <div class="card h-100 p-3 shadow-sm">
-      <h5 class="fw-semibold">Shareable link</h5>
-      <p class="text-muted mb-0">Create your private inbox link and share it anywhere.</p>
-    </div>
+<section class="landing-why">
+  <div class="landing-why-head">
+    <h2 class="fw-bold">Why use Uknowme?</h2>
+    <p>Built for privacy, built for clarity, and built to make sharing easy.</p>
   </div>
-  <div class="col-md-4">
-    <div class="card h-100 p-3 shadow-sm">
-      <h5 class="fw-semibold">Media support</h5>
-      <p class="text-muted mb-0">Accept text, images, audio, and video with clear moderation controls.</p>
+  <div class="row g-4 mt-1">
+    <div class="col-md-6">
+      <div class="why-card">
+        <span class="why-icon">AN</span>
+        <h5 class="fw-semibold">Anonymity by default</h5>
+        <p>Messages stay anonymous unless someone chooses to reveal themselves.</p>
+      </div>
     </div>
-  </div>
-  <div class="col-md-4">
-    <div class="card h-100 p-3 shadow-sm">
-      <h5 class="fw-semibold">Email alerts</h5>
-      <p class="text-muted mb-0">Stay notified whenever new messages arrive in your inbox.</p>
+    <div class="col-md-6">
+      <div class="why-card">
+        <span class="why-icon">SL</span>
+        <h5 class="fw-semibold">Shareable link</h5>
+        <p>Create one private inbox link and share it everywhere in seconds.</p>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="why-card">
+        <span class="why-icon">SS</span>
+        <h5 class="fw-semibold">Safe and secure</h5>
+        <p>Built-in controls and reporting tools help keep your inbox healthy.</p>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="why-card">
+        <span class="why-icon">EA</span>
+        <h5 class="fw-semibold">Email alerts</h5>
+        <p>Know when new messages arrive so you can respond quickly.</p>
+      </div>
     </div>
   </div>
 </section>

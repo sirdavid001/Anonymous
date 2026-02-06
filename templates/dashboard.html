@@ -1,5 +1,65 @@
 {% extends "base.html" %}
 {% block title %}Dashboard – Uknowme{% endblock %}
+{% block head %}
+<style>
+  .dash-share-grid {
+    margin-top: 0.75rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .dash-share-btn {
+    width: 100%;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    padding: 0.6rem 0.7rem;
+    text-decoration: none;
+    font-weight: 700;
+    text-align: center;
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+
+  .dash-share-wa {
+    color: #ffffff;
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    box-shadow: 0 8px 18px rgba(22, 163, 74, 0.28);
+  }
+
+  .dash-share-tg {
+    color: #ffffff;
+    background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.26);
+  }
+
+  .dash-share-more {
+    color: #0f172a;
+    background: linear-gradient(135deg, #fde047, #facc15);
+    box-shadow: 0 8px 18px rgba(250, 204, 21, 0.32);
+  }
+
+  .empty-board {
+    border-radius: 14px;
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    background:
+      radial-gradient(120% 120% at 0% 0%, rgba(37, 99, 235, 0.12), transparent 56%),
+      radial-gradient(100% 120% at 100% 100%, rgba(14, 165, 233, 0.1), transparent 56%),
+      var(--card);
+    padding: 1rem;
+  }
+
+  .empty-board h6 {
+    margin-bottom: 0.45rem;
+  }
+
+  @media (max-width: 768px) {
+    .dash-share-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="dashboard-page">
@@ -24,13 +84,23 @@
         </button>
       </div>
       <small id="copyInboxStatus" class="text-muted d-block mt-2">Tap copy to share your inbox link.</small>
+      <div class="dash-share-grid">
+        <a id="shareWhatsAppBtn" class="dash-share-btn dash-share-wa" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+        <a id="shareTelegramBtn" class="dash-share-btn dash-share-tg" target="_blank" rel="noopener noreferrer">Telegram</a>
+        <button id="shareMoreBtn" class="dash-share-btn dash-share-more" type="button">More options</button>
+      </div>
     </div>
   </div>
 
   <!-- CONTENT FIRST (required by AdSense) -->
   <div class="card shadow-sm mb-4">
     <div class="card-body">
-      <h5 class="fw-bold mb-3">Messages</h5>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Messages</h5>
+        <button id="refreshBoardBtn" class="btn btn-outline-secondary btn-sm w-auto px-3 py-2" type="button">
+          Refresh
+        </button>
+      </div>
 
       {% if messages %}
         {% for msg in messages %}
@@ -40,7 +110,10 @@
           </div>
         {% endfor %}
       {% else %}
-        <p class="text-muted">No messages yet.</p>
+        <div class="empty-board">
+          <h6 class="fw-bold">No messages yet</h6>
+          <p class="text-muted mb-0">Share your link above with friends to start receiving anonymous messages.</p>
+        </div>
       {% endif %}
     </div>
   </div>
@@ -68,10 +141,23 @@
   const input = document.getElementById("inboxLinkInput");
   const copyBtn = document.getElementById("copyInboxBtn");
   const status = document.getElementById("copyInboxStatus");
+  const shareWhatsAppBtn = document.getElementById("shareWhatsAppBtn");
+  const shareTelegramBtn = document.getElementById("shareTelegramBtn");
+  const shareMoreBtn = document.getElementById("shareMoreBtn");
+  const refreshBoardBtn = document.getElementById("refreshBoardBtn");
 
-  if (!input || !copyBtn || !status) {
+  if (!input || !copyBtn || !status || !shareWhatsAppBtn || !shareTelegramBtn || !shareMoreBtn) {
     return;
   }
+
+  const inboxUrl = input.value;
+  const shareTitle = "My Uknowme inbox";
+  const shareText = "Send me anonymous feedback on Uknowme:";
+  const encodedUrl = encodeURIComponent(inboxUrl);
+  const encodedText = encodeURIComponent(`${shareText} ${inboxUrl}`);
+
+  shareWhatsAppBtn.href = `https://wa.me/?text=${encodedText}`;
+  shareTelegramBtn.href = `https://t.me/share/url?url=${encodedUrl}&text=${encodeURIComponent(shareText)}`;
 
   const updateStatus = (message, isError = false) => {
     status.textContent = message;
@@ -93,14 +179,20 @@
     return document.execCommand("copy");
   };
 
+  const copyInboxLink = async () => {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(inboxUrl);
+      return;
+    }
+
+    if (!fallbackCopy()) {
+      throw new Error("Copy command failed");
+    }
+  };
+
   copyBtn.addEventListener("click", async () => {
     try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(input.value);
-      } else if (!fallbackCopy()) {
-        throw new Error("Copy command failed");
-      }
-
+      await copyInboxLink();
       copyBtn.textContent = "Copied";
       updateStatus("Inbox link copied.", false);
       setTimeout(() => {
@@ -112,6 +204,39 @@
       input.select();
     }
   });
+
+  shareMoreBtn.addEventListener("click", async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: inboxUrl,
+        });
+        updateStatus("Share sheet opened.", false);
+      } catch (err) {
+        if (err && err.name !== "AbortError") {
+          updateStatus("Could not open share sheet. Link copied instead.", true);
+        }
+      }
+      return;
+    }
+
+    try {
+      await copyInboxLink();
+      updateStatus("Share not supported on this browser. Link copied instead.", false);
+    } catch (err) {
+      updateStatus("Could not copy automatically. Select and copy manually.", true);
+      input.focus();
+      input.select();
+    }
+  });
+
+  if (refreshBoardBtn) {
+    refreshBoardBtn.addEventListener("click", () => {
+      window.location.reload();
+    });
+  }
 })();
 </script>
 {% endblock %}
