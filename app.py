@@ -146,6 +146,7 @@ PUBLIC_ENDPOINTS = {
     "landing",
     "login",
     "register",
+    "drop",
     "forgot_password",
     "reset_password",
     "verify_email",
@@ -361,7 +362,7 @@ def drop(slug):
         record = RateLimit.query.filter_by(ip=ip).first()
 
         if record and now - record.last_hit < 15:
-            flash("Slow down. Try again in a few seconds.")
+            flash("Slow down. Try again in a few seconds.", "warning")
             return redirect(request.url)
 
         if record:
@@ -375,7 +376,7 @@ def drop(slug):
 
         if file and file.filename:
             if not allowed_file(file.filename):
-                flash("Unsupported file type.")
+                flash("Unsupported file type.", "danger")
                 return redirect(request.url)
 
             # size check BEFORE saving
@@ -384,7 +385,7 @@ def drop(slug):
             file.seek(0)
 
             if size > 250 * 1024 * 1024:
-                flash("File too large.")
+                flash("File too large.", "danger")
                 return redirect(request.url)
 
             os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
@@ -419,10 +420,19 @@ def drop(slug):
                 "<p>You just received a new anonymous message.</p>"
             )
 
-        flash("Message sent anonymously.")
+        flash("Message sent anonymously.", "success")
         return redirect(request.url)
 
-    return render_template("drop.html", form=form)
+    recipient_name = (
+        user.email.split("@")[0].strip()
+        if user.email and "@" in user.email
+        else user.slug
+    )
+    return render_template(
+        "drop.html",
+        form=form,
+        recipient_name=recipient_name,
+    )
 
 
 

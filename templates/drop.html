@@ -1,68 +1,290 @@
 {% extends "base.html" %}
 {% block title %}Send Anonymous Message{% endblock %}
 
+{% block head %}
+<style>
+  .drop-shell {
+    max-width: 920px;
+    margin: 0 auto;
+  }
+
+  .drop-board {
+    border-radius: 24px;
+    border: 1px solid rgba(76, 29, 149, 0.22);
+    background: linear-gradient(130deg, #2f3cff 0%, #a10dff 100%);
+    box-shadow: 0 26px 54px rgba(67, 20, 120, 0.28);
+    color: #ffffff;
+    overflow: hidden;
+    animation: boardIn 0.45s ease;
+  }
+
+  .drop-board-inner {
+    padding: clamp(1rem, 3vw, 1.7rem);
+    border: 18px solid rgba(63, 42, 240, 0.9);
+    border-radius: 24px;
+  }
+
+  .drop-board-title-wrap {
+    display: flex;
+    justify-content: center;
+    margin: -2.2rem 0 1rem;
+  }
+
+  .drop-board-title {
+    background: #4f46e5;
+    border-radius: 999px;
+    padding: 0.58rem 1.7rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    box-shadow: 0 10px 24px rgba(25, 20, 89, 0.35);
+  }
+
+  .drop-bullets {
+    margin: 0.3rem 0 1rem;
+    padding-left: 1.05rem;
+    display: grid;
+    gap: 0.35rem;
+    font-size: clamp(1rem, 2.1vw, 1.2rem);
+  }
+
+  .drop-bullets strong {
+    font-weight: 800;
+  }
+
+  .drop-form-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 18px;
+    padding: clamp(0.9rem, 2vw, 1.2rem);
+    backdrop-filter: blur(2px);
+  }
+
+  .drop-textarea {
+    min-height: 180px;
+    border: 0;
+    border-radius: 12px;
+    font-size: 1.08rem;
+    background: #ffffff;
+    color: #0f172a;
+  }
+
+  .drop-textarea::placeholder {
+    color: #98a2b3;
+  }
+
+  .drop-textarea:focus {
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.22);
+  }
+
+  .drop-upload-label {
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 0.82rem;
+    margin-top: 0.75rem;
+  }
+
+  .drop-upload-input {
+    background: rgba(255, 255, 255, 0.92);
+    border: none;
+    border-radius: 12px;
+  }
+
+  .drop-send-btn {
+    margin-top: 0.75rem;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #2962ff 0%, #6dd9ff 100%);
+    color: #ffffff;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    border: none;
+  }
+
+  .drop-send-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .drop-feedback {
+    margin-top: 1rem;
+    border-radius: 14px;
+    border: 1px solid transparent;
+    padding: 0.8rem 0.9rem;
+    font-weight: 600;
+  }
+
+  .drop-feedback-success {
+    background: rgba(34, 197, 94, 0.15);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #eafff0;
+  }
+
+  .drop-feedback-warning {
+    background: rgba(251, 191, 36, 0.18);
+    border-color: rgba(251, 191, 36, 0.45);
+    color: #fff4cf;
+  }
+
+  .drop-feedback-danger {
+    background: rgba(239, 68, 68, 0.18);
+    border-color: rgba(239, 68, 68, 0.45);
+    color: #ffe7e7;
+  }
+
+  .drop-success-card {
+    margin-top: 1.1rem;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.12);
+    padding: 1rem;
+  }
+
+  .drop-success-icon {
+    width: 62px;
+    height: 62px;
+    margin: 0 auto 0.7rem;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 1.7rem;
+    font-weight: 900;
+    color: #14532d;
+    background: #dcfce7;
+    border: 4px solid #86efac;
+  }
+
+  .drop-success-title {
+    margin: 0;
+    font-size: clamp(1.45rem, 3vw, 2rem);
+    font-weight: 800;
+    text-align: center;
+  }
+
+  .drop-success-sub {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0.35rem 0 0.9rem;
+  }
+
+  .drop-success-actions {
+    display: grid;
+    gap: 0.62rem;
+  }
+
+  .drop-success-actions .btn {
+    border-radius: 999px;
+    font-weight: 700;
+  }
+
+  .drop-secondary-action {
+    background: #ffffff;
+    color: #4f46e5;
+  }
+
+  .drop-powered {
+    text-align: center;
+    margin-top: 1rem;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.86rem;
+  }
+
+  @keyframes boardIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .drop-board-inner {
+      border-width: 12px;
+      border-radius: 20px;
+    }
+
+    .drop-board-title-wrap {
+      margin-top: -1.55rem;
+    }
+
+    .drop-board-title {
+      padding: 0.5rem 1.1rem;
+      font-size: 1.35rem;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-6 col-md-8">
+{% set flashes = get_flashed_messages(with_categories=true) %}
+{% set flash_state = namespace(sent_ok=false) %}
 
-    <div class="card shadow-sm p-4">
-      <h4 class="fw-bold mb-2 text-center">
-        Send an anonymous message
-      </h4>
+<div class="drop-shell">
+  <div class="drop-board">
+    <div class="drop-board-inner">
+      <div class="drop-board-title-wrap">
+        <h2 class="drop-board-title">Message Board</h2>
+      </div>
 
-      <p class="text-muted text-center mb-4">
-        Your identity is never revealed.
-      </p>
+      <ul class="drop-bullets">
+        <li>Send your message secretly to <strong>{{ recipient_name|upper }}</strong>.</li>
+        <li><strong>{{ recipient_name|upper }}</strong> will never know who sent it.</li>
+        <li>Be honest, be kind, and keep it respectful.</li>
+      </ul>
 
-      <form method="POST" enctype="multipart/form-data" id="dropForm">
-        {{ form.hidden_tag() }}
-
-        <!-- Message -->
-        <div class="mb-3">
+      <div class="drop-form-card">
+        <form method="POST" enctype="multipart/form-data" id="dropForm">
+          {{ form.hidden_tag() }}
           {{ form.message(
-            class="form-control",
-            rows="4",
-            placeholder="Write something honest, kind, or bold…"
+            class="form-control drop-textarea",
+            rows="5",
+            placeholder="Enter your thought"
           ) }}
-        </div>
 
-        <!-- File upload -->
-        <div class="mb-3">
-          <label class="form-label small text-muted">
+          <label class="drop-upload-label" for="dropFileInput">
             Optional attachment (image / video / audio)
           </label>
           <input
+            id="dropFileInput"
             type="file"
             name="file"
-            class="form-control"
+            class="form-control drop-upload-input"
             accept="image/*,video/*,audio/*"
           >
-        </div>
 
-        <!-- Submit -->
-        <button class="btn btn-primary w-100" id="sendBtn">
-          <span class="btn-text">Send anonymously</span>
-          <span class="spinner-border spinner-border-sm d-none"></span>
-        </button>
-      </form>
+          <button class="btn btn-primary w-100 drop-send-btn" id="sendBtn" type="submit">
+            <span class="btn-text">Send</span>
+            <span class="spinner-border spinner-border-sm d-none"></span>
+          </button>
+        </form>
 
-      <div class="ad-card">
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-client="ca-pub-XXXXXXXXXXXX"
-       data-ad-slot="1111111111"
-       data-ad-format="auto"
-       data-full-width-responsive="true"></ins>
-  <script>
-    (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
-</div>
+        {% for category, message in flashes %}
+          {% if category == "success" %}
+            {% set flash_state.sent_ok = true %}
+          {% endif %}
+          {% set mapped = "drop-feedback-warning" %}
+          {% if category == "success" %}
+            {% set mapped = "drop-feedback-success" %}
+          {% elif category == "danger" %}
+            {% set mapped = "drop-feedback-danger" %}
+          {% endif %}
+          <div class="drop-feedback {{ mapped }}">{{ message }}</div>
+        {% endfor %}
 
-      <p class="small text-muted text-center mt-4">
-        Powered by <strong>Uknowme</strong>
-      </p>
+        {% if flash_state.sent_ok %}
+          <div class="drop-success-card">
+            <div class="drop-success-icon">✓</div>
+            <h3 class="drop-success-title">Message Sent Successfully</h3>
+            <p class="drop-success-sub">Thanks for your participation.</p>
+            <div class="drop-success-actions">
+              <a href="{{ request.path }}" class="btn btn-primary">Send another message</a>
+              <a href="{{ url_for('register') }}" class="btn drop-secondary-action">Get your own inbox link</a>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+      <p class="drop-powered">Powered by <strong>Uknowme</strong></p>
     </div>
-
   </div>
 </div>
 {% endblock %}
