@@ -1,16 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container d-flex align-items-center justify-content-center" style="min-height:85vh">
-  <div class="card shadow border-0 text-center p-4" style="max-width:420px;width:100%">
-
-    {% if success %}
-      <div class="alert alert-success">Email verified successfully</div>
-    {% else %}
-      <div class="alert alert-danger">Invalid or expired link</div>
-    {% endif %}
-
-    <a href="{{ url_for('login') }}" class="btn btn-info w-100 mt-2">Login</a>
-
-  </div>
+<div class="alert alert-success shadow-sm text-center">
+  <h4>Email Verified</h4>
+  <a href="/login" class="btn btn-success">Login</a>
 </div>
 {% endblock %}

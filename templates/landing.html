@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Uknowme — Anonymous messages done right{% endblock %}
+
+{% block content %}
+<section class="hero text-center">
+  <h1 class="display-5 fw-bold">Get honest feedback without the awkwardness</h1>
+  <p class="lead text-muted mt-3">
+    Uknowme gives you a shareable link so friends and followers can send anonymous messages securely and respectfully.
+  </p>
+  <div class="d-flex justify-content-center gap-3 mt-4">
+    <a href="/register" class="btn btn-primary btn-lg">Create your inbox</a>
+    <a href="/login" class="btn btn-outline-secondary btn-lg">I already have an account</a>
+  </div>
+</section>
+
+<section class="row g-4 mt-4">
+  <div class="col-md-4">
+    <div class="card h-100 p-3 shadow-sm">
+      <h5 class="fw-semibold">Shareable link</h5>
+      <p class="text-muted mb-0">Create your private inbox link and share it anywhere.</p>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100 p-3 shadow-sm">
+      <h5 class="fw-semibold">Media support</h5>
+      <p class="text-muted mb-0">Accept text, images, audio, and video with clear moderation controls.</p>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100 p-3 shadow-sm">
+      <h5 class="fw-semibold">Email alerts</h5>
+      <p class="text-muted mb-0">Stay notified whenever new messages arrive in your inbox.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

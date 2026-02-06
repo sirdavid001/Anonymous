@@ -24,6 +24,15 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret")
+ADMIN_EMAILS = {
+    email.strip().lower()
+    for email in (
+        os.getenv("ADMIN_EMAILS", "")
+        + ","
+        + os.getenv("ADMIN_EMAIL", "")
+    ).split(",")
+    if email.strip()
+}
 
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -61,6 +70,18 @@ ALLOWED_EXTENSIONS = {
 def allowed_file(filename):
     return "." in filename and \
            filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def sync_admin_status(user):
+    if not ADMIN_EMAILS:
+        return False
+
+    should_be_admin = user.email.lower() in ADMIN_EMAILS
+    if user.is_admin != should_be_admin:
+        user.is_admin = should_be_admin
+        return True
+
+    return False
 
 
 
@@ -108,8 +129,18 @@ class LoginForm(FlaskForm):
 # --------------------
 # ROUTES
 # --------------------
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
+def landing():
+    return render_template("landing.html")
+
+
+@app.route("/register", methods=["GET", "POST"])
 def register():
+    if current_user.is_authenticated:
+        if current_user.is_verified:
+            return redirect(url_for("dashboard"))
+        return redirect(url_for("unverified"))
+
     form = RegisterForm()
 
     if form.validate_on_submit():
@@ -123,7 +154,8 @@ def register():
             email=form.email.data,
             password_hash=generate_password_hash(form.password.data),
             slug=secrets.token_urlsafe(6),
-            is_verified=False
+            is_verified=False,
+            is_admin=form.email.data.lower() in ADMIN_EMAILS
         )
 
         db.session.add(user)
@@ -173,6 +205,9 @@ def login():
         user = User.query.filter_by(email=form.email.data).first()
 
         if user and check_password_hash(user.password_hash, form.password.data):
+            if sync_admin_status(user):
+                db.session.commit()
+
             login_user(user)
 
             if not user.is_verified:
@@ -531,6 +566,29 @@ def privacy():
     return render_template("privacy.html")
 
 
+ codex/identify-missing-elements-in-website
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+
+ main
+@app.route("/terms")
+def terms():
+    return render_template("terms.html")
+
+
+codex/identify-missing-elements-in-website
+@app.route("/report/<int:msg_id>", methods=["POST"])
+@login_required
+def report_message(msg_id):
+    msg = Message.query.get_or_404(msg_id)
+    msg.reported = True
+    db.session.commit()
+    flash("Message reported.")
+    return redirect(request.referrer)
+ main
 
 
 # --------------------
@@ -539,4 +597,9 @@ def privacy():
 
 if __name__ == "__main__":
     app.run()
+codex/identify-missing-elements-in-website
 
+codex/fix-typo-in-codebase
+
+main
+main
