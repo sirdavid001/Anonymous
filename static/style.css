@@ -309,7 +309,6 @@ input, textarea {
   box-shadow: 0 2px 10px rgba(0,0,0,.08);
 }
 
-<<<<<<< HEAD
 .navbar .navbar-brand,
 .navbar .nav-link,
 .navbar .btn {
@@ -354,7 +353,8 @@ footer a {
 
 footer a:hover {
   color: var(--accent);
-=======
+}
+
 /* ===== NAVBAR POLISH ===== */
 .site-nav {
   padding: .65rem 0;
@@ -432,5 +432,4 @@ footer a:hover {
   .nav-actions .nav-btn {
     min-width: 96px;
   }
->>>>>>> 64a37f1 (fixxed)
 }

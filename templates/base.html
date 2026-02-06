@@ -38,6 +38,29 @@
         border-radius: 10px;
       }
     }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.6rem;
+      flex-wrap: nowrap;
+    }
+    .nav-login-link {
+      font-weight: 600;
+      white-space: nowrap;
+      color: var(--nav-text);
+    }
+    .nav-actions .btn {
+      white-space: nowrap;
+    }
+    @media (max-width: 576px) {
+      .nav-actions {
+        gap: 0.5rem;
+      }
+      .nav-actions .btn {
+        padding: 0.4rem 0.75rem;
+      }
+    }
   </style>
  
   {% block head %}{% endblock %}
@@ -52,34 +75,27 @@
       <img class="brand-logo-img" src="{{ url_for('static', filename='logo.svg') }}" alt="Uknowme logo">
       <span class="visually-hidden">Uknowme</span>
     </a>
-    <div class="ms-auto">
+    <div class="ms-auto nav-actions">
       {% if current_user.is_authenticated %}
-      <div class="dropdown d-inline-block me-2">
-        <button class="btn btn-sm theme-toggle dropdown-toggle" type="button" id="themeMenu" data-bs-toggle="dropdown" aria-expanded="false">
-          Theme: System
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeMenu">
-          <li><button class="dropdown-item" type="button" data-theme-value="light">Light</button></li>
-          <li><button class="dropdown-item" type="button" data-theme-value="dark">Dark</button></li>
-          <li><button class="dropdown-item" type="button" data-theme-value="system">System</button></li>
-        </ul>
-      </div>
+        <div class="dropdown d-inline-block me-1">
+          <button class="btn btn-sm theme-toggle dropdown-toggle" type="button" id="themeMenu" data-bs-toggle="dropdown" aria-expanded="false">
+            Theme: System
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeMenu">
+            <li><button class="dropdown-item" type="button" data-theme-value="light">Light</button></li>
+            <li><button class="dropdown-item" type="button" data-theme-value="dark">Dark</button></li>
+            <li><button class="dropdown-item" type="button" data-theme-value="system">System</button></li>
+          </ul>
+        </div>
 
-    {% else %}
-      <div class="d-flex gap-3">
-        <a href="/login" class="text-decoration-none">Login</a>
-        <a href="/register" class="btn btn-primary btn-sm">Get started</a>
-      </div>
-    {% endif %}
-
-      {% if current_user.is_authenticated %}
         {% if current_user.is_admin and current_user.email|lower == "issirdavid@gmail.com" %}
-          <a class="btn btn-outline-light btn-sm me-2" href="/admin">Admin</a>
+          <a class="btn btn-outline-light btn-sm" href="/admin">Admin</a>
         {% endif %}
         <a class="btn btn-outline-light btn-sm" href="/dashboard">Dashboard</a>
-        <a class="btn btn-outline-light btn-sm ms-2" href="{{ url_for('logout') }}">Logout</a>
+        <a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">Logout</a>
       {% else %}
-        <a class="btn btn-outline-light btn-sm" href="{{ url_for('login') }}">Login</a>
+        <a href="{{ url_for('login') }}" class="text-decoration-none nav-login-link">Login</a>
+        <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">Get started</a>
       {% endif %}
     </div>
   </div>

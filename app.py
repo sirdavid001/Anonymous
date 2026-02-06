@@ -482,7 +482,7 @@ def verify_reset_token(token, expiration=3600):
 @app.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
     if request.method == "POST":
-        email = request.form.get("email")
+        email = request.form.get("email", "").strip()
         user = User.query.filter_by(email=email).first()
         if user:
             token = generate_reset_token(user.email)
@@ -496,9 +496,10 @@ def forgot_password():
                 <a href="{reset_link}">{reset_link}</a>
                 """
             )
-        return "If that email exists, a reset link has been sent."
+        return redirect(url_for("forgot_password", sent="1"))
 
-    return render_template("forgot_password.html")
+    sent = request.args.get("sent") == "1"
+    return render_template("forgot_password.html", sent=sent)
 
 
 
