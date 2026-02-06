@@ -1,5 +1,6 @@
 import os
 import secrets
+from urllib.parse import urljoin, urlparse
 from flask import Flask, abort, render_template, redirect, request, flash, url_for
 from sqlalchemy import inspect, text
 from flask_login import (
@@ -25,15 +26,8 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret")
-ADMIN_EMAILS = {
-    email.strip().lower()
-    for email in (
-        os.getenv("ADMIN_EMAILS", "")
-        + ","
-        + os.getenv("ADMIN_EMAIL", "")
-    ).split(",")
-    if email.strip()
-}
+PRIMARY_ADMIN_EMAIL = "issirdavid@gmail.com"
+ADMIN_EMAILS = {PRIMARY_ADMIN_EMAIL}
 
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -97,16 +91,45 @@ def allowed_file(filename):
            filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def sync_admin_status(user):
-    if not ADMIN_EMAILS:
-        return False
+def is_admin_email(email):
+    return bool(email) and email.strip().lower() in ADMIN_EMAILS
 
-    should_be_admin = user.email.lower() in ADMIN_EMAILS
+
+def sync_admin_status(user):
+    should_be_admin = is_admin_email(user.email)
     if user.is_admin != should_be_admin:
         user.is_admin = should_be_admin
         return True
 
     return False
+
+
+def enforce_admin_assignments():
+    changed = False
+    for user in User.query.all():
+        should_be_admin = is_admin_email(user.email)
+        if user.is_admin != should_be_admin:
+            user.is_admin = should_be_admin
+            changed = True
+
+    if changed:
+        db.session.commit()
+
+
+with app.app_context():
+    enforce_admin_assignments()
+
+
+def is_safe_redirect_target(target):
+    if not target:
+        return False
+
+    host_url = urlparse(request.host_url)
+    redirect_url = urlparse(urljoin(request.host_url, target))
+    return (
+        redirect_url.scheme in {"http", "https"}
+        and host_url.netloc == redirect_url.netloc
+    )
 
 
 
@@ -118,6 +141,37 @@ def sync_admin_status(user):
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
+
+PUBLIC_ENDPOINTS = {
+    "landing",
+    "login",
+    "register",
+    "forgot_password",
+    "reset_password",
+    "verify_email",
+    "privacy",
+    "about",
+    "terms",
+    "static",
+}
+
+
+@app.before_request
+def enforce_login_for_private_routes():
+    endpoint = request.endpoint
+    if endpoint is None:
+        return None
+
+    if endpoint in PUBLIC_ENDPOINTS or endpoint.startswith("static"):
+        return None
+
+    if current_user.is_authenticated:
+        if sync_admin_status(current_user):
+            db.session.commit()
+        return None
+
+    return redirect(url_for("login", next=request.full_path.rstrip("?")))
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -180,7 +234,7 @@ def register():
             password_hash=generate_password_hash(form.password.data),
             slug=secrets.token_urlsafe(6),
             is_verified=False,
-            is_admin=form.email.data.lower() in ADMIN_EMAILS
+            is_admin=is_admin_email(form.email.data)
         )
 
         db.session.add(user)
@@ -238,6 +292,10 @@ def login():
             if not user.is_verified:
                 flash("Please verify your email before continuing.")
                 return redirect(url_for("unverified"))
+
+            next_url = request.args.get("next")
+            if is_safe_redirect_target(next_url):
+                return redirect(next_url)
 
             return redirect(url_for("dashboard"))
 
@@ -564,6 +622,12 @@ def settings():
 @app.route("/admin")
 @login_required
 def admin():
+    if not is_admin_email(current_user.email):
+        abort(403)
+
+    if sync_admin_status(current_user):
+        db.session.commit()
+
     if not current_user.is_admin:
         abort(403)
 
@@ -583,6 +647,11 @@ def add_security_headers(response):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    endpoint = request.endpoint or ""
+    if endpoint not in PUBLIC_ENDPOINTS and not endpoint.startswith("static"):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
     return response
 
 

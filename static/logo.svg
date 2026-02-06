@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Uknowme logo</title>
+  <desc id="desc">Rounded blue square with a white chat bubble and question mark.</desc>
+  <defs>
+    <linearGradient id="logoGradient" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#06b6d4"/>
+      <stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#logoGradient)"/>
+  <path fill="#ffffff" d="M20 17h24a8 8 0 0 1 8 8v14a8 8 0 0 1-8 8H31l-9 7v-7h-2a8 8 0 0 1-8-8V25a8 8 0 0 1 8-8z"/>
+  <path fill="#1d4ed8" d="M34.8 24.4c2.8 0 5.1 2.1 5.1 4.7 0 3-2.7 3.8-3.9 5.5-.5.7-.7 1.4-.7 2.3h-3.1c0-1.4.3-2.7 1.1-3.8 1.2-1.7 3.3-2.4 3.3-3.7 0-.8-.7-1.4-1.7-1.4-1.1 0-1.8.7-1.8 1.9h-3.2c0-3.2 2.2-5.5 4.9-5.5z"/>
+  <circle cx="33.8" cy="40.8" r="1.9" fill="#1d4ed8"/>
+</svg>
