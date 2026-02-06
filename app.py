@@ -26,11 +26,8 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret")
-PRIMARY_ADMIN_EMAIL = "itssirdavid@ggmail.com"
-ADMIN_EMAILS = {
-    PRIMARY_ADMIN_EMAIL,
-    "issirdavid@gmail.com",
-}
+PRIMARY_ADMIN_EMAIL = "itssirdavid@gmail.com"
+ADMIN_EMAILS = {PRIMARY_ADMIN_EMAIL}
 
 
 DATABASE_URL = os.getenv("DATABASE_URL")
