@@ -108,7 +108,12 @@ class LoginForm(FlaskForm):
 # --------------------
 # ROUTES
 # --------------------
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
+def landing():
+    return render_template("landing.html")
+
+
+@app.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
         if current_user.is_verified:
@@ -536,16 +541,20 @@ def privacy():
     return render_template("privacy.html")
 
 
+ codex/identify-missing-elements-in-website
+
 @app.route("/about")
 def about():
     return render_template("about.html")
 
 
+ main
 @app.route("/terms")
 def terms():
     return render_template("terms.html")
 
 
+codex/identify-missing-elements-in-website
 @app.route("/report/<int:msg_id>", methods=["POST"])
 @login_required
 def report_message(msg_id):
@@ -554,6 +563,7 @@ def report_message(msg_id):
     db.session.commit()
     flash("Message reported.")
     return redirect(request.referrer)
+ main
 
 
 # --------------------
@@ -562,4 +572,6 @@ def report_message(msg_id):
 
 if __name__ == "__main__":
     app.run()
+codex/identify-missing-elements-in-website
 
+main
