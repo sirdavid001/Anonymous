@@ -46,8 +46,8 @@ html[data-theme="dark"] {
   --bg-gradient: radial-gradient(circle at top, #111c33, #0b1220);
   --card: #101a2e;
   --border: rgba(255,255,255,.08);
-  --text: #e6ebf5;
-  --muted: #8a93a6;
+  --text: #f5f7ff;
+  --muted: #c1c9da;
   --accent: #38bdf8;
   --input-bg: #0b1426;
   --nav-bg: #0c152b;
