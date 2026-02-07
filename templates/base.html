@@ -79,17 +79,6 @@
     </a>
     <div class="ms-auto nav-actions">
       {% if current_user.is_authenticated %}
-        <div class="dropdown d-inline-block me-1">
-          <button class="btn btn-sm theme-toggle dropdown-toggle" type="button" id="themeMenu" data-bs-toggle="dropdown" aria-expanded="false">
-            Theme: System
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeMenu">
-            <li><button class="dropdown-item" type="button" data-theme-value="light">Light</button></li>
-            <li><button class="dropdown-item" type="button" data-theme-value="dark">Dark</button></li>
-            <li><button class="dropdown-item" type="button" data-theme-value="system">System</button></li>
-          </ul>
-        </div>
-
         {% if can_access_admin %}
           <a class="btn btn-outline-light btn-sm" href="/admin">Admin</a>
         {% endif %}
@@ -110,7 +99,7 @@
 
 <footer class="footer bg-white">
   <div class="container py-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
-    <span class="text-muted small">© 2024 Uknowme. All rights reserved.</span>
+    <span class="text-muted small">© 2025 Uknowme. All rights reserved.</span>
     <div class="d-flex gap-3 small">
       <a class="text-decoration-none" href="/privacy">Privacy</a>
       <a class="text-decoration-none" href="/terms">Terms</a>
@@ -123,46 +112,6 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const themeMenuButton = document.getElementById("themeMenu");
-  const themeStorageKey = "theme-preference";
-
-  const getStoredTheme = () => localStorage.getItem(themeStorageKey) || "system";
-
-  const setThemeLabel = (theme) => {
-    if (!themeMenuButton) {
-      return;
-    }
-    const label = theme.charAt(0).toUpperCase() + theme.slice(1);
-    themeMenuButton.textContent = `Theme: ${label}`;
-  };
-
-  const applyTheme = (theme) => {
-    if (theme === "system") {
-      document.documentElement.removeAttribute("data-theme");
-    } else {
-      document.documentElement.setAttribute("data-theme", theme);
-    }
-    setThemeLabel(theme);
-  };
-
-  const storedTheme = getStoredTheme();
-  applyTheme(storedTheme);
-
-  document.querySelectorAll("[data-theme-value]").forEach((item) => {
-    item.addEventListener("click", () => {
-      const selectedTheme = item.getAttribute("data-theme-value");
-      localStorage.setItem(themeStorageKey, selectedTheme);
-      applyTheme(selectedTheme);
-    });
-  });
-
-  const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-  mediaQuery.addEventListener("change", () => {
-    if (getStoredTheme() === "system") {
-      applyTheme("system");
-    }
-  });
-
   document.querySelectorAll("form").forEach(form => {
     form.addEventListener("submit", () => {
       const btn = form.querySelector("button[type=submit]");

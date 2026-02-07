@@ -23,56 +23,6 @@
   --focus-ring: rgba(37, 99, 235, 0.25);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0b1220;
-    --bg-gradient: radial-gradient(circle at top, #111c33, #0b1220);
-    --card: #101a2e;
-    --border: rgba(255,255,255,.08);
-    --text: #e6ebf5;
-    --muted: #8a93a6;
-    --accent: #38bdf8;
-    --input-bg: #0b1426;
-    --nav-bg: #0c152b;
-    --nav-text: #e6ebf5;
-    --nav-border: rgba(255,255,255,.08);
-    --shadow: 0 30px 80px rgba(0,0,0,.6);
-    --focus-ring: rgba(56,189,248,.3);
-  }
-}
-
-html[data-theme="dark"] {
-  --bg: #0b1220;
-  --bg-gradient: radial-gradient(circle at top, #111c33, #0b1220);
-  --card: #101a2e;
-  --border: rgba(255,255,255,.08);
-  --text: #f5f7ff;
-  --muted: #c1c9da;
-  --accent: #38bdf8;
-  --input-bg: #0b1426;
-  --nav-bg: #0c152b;
-  --nav-text: #e6ebf5;
-  --nav-border: rgba(255,255,255,.08);
-  --shadow: 0 30px 80px rgba(0,0,0,.6);
-  --focus-ring: rgba(56,189,248,.3);
-}
-
-html[data-theme="light"] {
-  --bg: #f3f5fb;
-  --bg-gradient: radial-gradient(circle at top, #ffffff, #e6ecf6);
-  --card: #ffffff;
-  --border: rgba(16, 24, 40, 0.12);
-  --text: #101828;
-  --muted: #667085;
-  --accent: #2563eb;
-  --input-bg: #f8fafc;
-  --nav-bg: #ffffff;
-  --nav-text: #0f172a;
-  --nav-border: rgba(16, 24, 40, 0.08);
-  --shadow: 0 30px 80px rgba(15, 23, 42, 0.15);
-  --focus-ring: rgba(37, 99, 235, 0.25);
-}
-
 html, body {
   height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
@@ -104,10 +54,10 @@ html, body {
   width: min(920px, 92vw);
   margin: 3rem auto;
   padding: 2.5rem clamp(1.5rem, 3vw, 3rem);
-  background: linear-gradient(180deg, #121e36, var(--card));
+  background: linear-gradient(180deg, #ffffff, var(--card));
   border-radius: 20px;
   border: 1px solid var(--border);
-  box-shadow: 0 30px 80px rgba(0,0,0,.55);
+  box-shadow: var(--shadow);
   line-height: 1.65;
 }
 
@@ -122,7 +72,7 @@ html, body {
   margin-top: 1.8rem;
   margin-bottom: .6rem;
   font-size: clamp(1.1rem, 2vw, 1.4rem);
-  color: #dbe7ff;
+  color: var(--accent);
 }
 
 .content-page p,
